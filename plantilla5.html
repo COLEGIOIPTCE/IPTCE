@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diploma de Excelencia por Materia - IPTCE</title>
+<!-- Cargando Tailwind CSS para la interfaz web -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Cargando librerías de exportación: html2canvas para imagen rápida y jsPDF para vector nativo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #e2e8f0;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+:root {
+    --navy: #050a15;
+    --gold: #d4af37;
+}
+
+/* Tipografía elegante para el diploma */
+.diploma-title {
+    font-family: 'Cinzel', serif;
+}
+.diploma-serif {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Efecto de papel realista con sombra profunda */
+.diploma-container {
+    background-color: #ffffff;
+    background-image: linear-gradient(to bottom right, rgba(255,255,255,1) 0%, rgba(250,250,245,1) 100%);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02);
+}
+
+/* Scrollbar estilizado para el área de previsualización */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.premium-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    color: #0f172a;
+    transition: all 0.3s ease;
+}
+.premium-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-800 antialiased overflow-x-hidden">
+
+<header class="bg-[#050a15] border-b-[3px] border-[#d4af37] py-4 px-6 md:px-8 shadow-xl flex items-center justify-between z-50 shrink-0">
+    <div class="flex items-center gap-5">
+        <!-- Logo institucional de contingencia mediante SVG en caso de ausencia de 'log.png' -->
+        <img src="log.png" alt="Logo IPTCE" class="h-12 w-auto object-contain brightness-0 invert filter drop-shadow-md" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEwdi0uNjdhMi4xMiAyLjEyIDAgMCAwLTEuNS0yLjAxTDEyIDIuNjZMMi41IDcuMzJhMi4xMiAyLjEyIDAgMCAwLTEuNSAyLjAxVjEwbTAgNHYyLjY3YTIuMTIgMi4xMiAxIDAgMCAxLjUgMi4wMWw4IDMuMTZhMi4xMiAyLjEyIDAgMCAwIDEuNS0yLjAxVjE0bS0zIDR2Mm0tNi0ydjJtMTItMTMuODhWMjhIMnoiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIi8+PC9zdmc+'">
+        <div class="hidden sm:block border-l border-gray-700 pl-5">
+            <h1 class="text-white text-xl font-serif font-bold tracking-wider diploma-serif">COLEGIO IPTCE</h1>
+            <p class="text-[#d4af37] text-[0.65rem] font-bold uppercase tracking-[0.2em] mt-0.5">Excelencia Académica por Materia</p>
+        </div>
+    </div>
+    <div class="flex gap-4">
+        <button onclick="window.location.href='Proyect1.html'" class="text-gray-400 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-md hover:bg-white/10">
+            Panel Principal
+        </button>
+    </div>
+</header>
+
+<main class="flex-grow flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full p-4 lg:p-8 gap-8">
+    
+    <!-- PANEL IZQUIERDO: FORMULARIO DE EDICIÓN -->
+    <section class="w-full lg:w-[400px] xl:w-[450px] bg-white rounded-xl shadow-xl shadow-gray-200/50 p-6 sm:p-8 border-t-4 border-[#050a15] shrink-0 h-fit">
+        <h2 class="text-xl font-bold text-[#050a15] mb-6 flex items-center gap-2 border-b-2 border-[#d4af37] pb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            Detalles de la Materia
+        </h2>
+        
+        <form id="diplomaForm" class="space-y-4" onsubmit="event.preventDefault();">
+            <div>
+                <label for="inputNombre" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nombre del Alumno</label>
+                <input type="text" id="inputNombre" placeholder="Ej. Juan Carlos Pérez" class="premium-input text-sm font-medium">
+            </div>
+            
+            <div>
+                <label for="inputAsignatura" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Asignatura Destacada</label>
+                <input type="text" id="inputAsignatura" placeholder="Ej. Matemática Aplicada" class="premium-input text-sm font-medium">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="inputPromedio" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Promedio de Materia</label>
+                    <input type="number" step="0.1" max="100" min="0" id="inputPromedio" placeholder="Ej. 98" class="premium-input text-sm font-medium font-mono text-center">
+                </div>
+                <div>
+                    <label for="inputCiclo" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ciclo Escolar</label>
+                    <input type="text" id="inputCiclo" value="2026" class="premium-input text-sm font-bold text-center bg-gray-50 text-gray-500" readonly>
+                </div>
+            </div>
+
+            <div>
+                <label for="inputPeriodo" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Periodo Evaluado</label>
+                <select id="inputPeriodo" class="premium-input text-sm font-medium cursor-pointer">
+                    <option value="Primer Bimestre">Primer Bimestre</option>
+                    <option value="Segundo Bimestre">Segundo Bimestre</option>
+                    <option value="Tercer Bimestre">Tercer Bimestre</option>
+                    <option value="Cuarto Bimestre">Cuarto Bimestre</option>
+                    <option value="Quinto Bimestre">Quinto Bimestre</option>
+                    <option value="Promedio Final">Promedio Final del Ciclo</option>
+                </select>
+            </div>
+
+            <!-- Nuevo Selector para Singular o Plural del logro -->
+            <div>
+                <label for="inputConector" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Modalidad de Mérito</label>
+                <select id="inputConector" class="premium-input text-sm font-medium cursor-pointer">
+                    <option value="por su logro de">Por su logro de (Singular)</option>
+                    <option value="por sus logros de">Por sus logros de (Plural)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="inputLogro" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Logro Específico</label>
+                <textarea id="inputLogro" rows="2" placeholder="Ej. obtener la nota máxima en el proyecto de investigación y mantener una participación académica excepcional" class="premium-input text-sm font-medium leading-relaxed resize-none"></textarea>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-100 mt-6 grid gap-3">
+                <button type="button" id="btnDescargarPDF" class="w-full bg-[#050a15] hover:bg-black text-[#d4af37] font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex justify-center items-center gap-2 group border border-[#050a15]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Generar Diploma Oficial (PDF)
+                </button>
+                <button type="button" id="btnDescargarImagen" class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium py-2.5 px-4 rounded-lg transition-all flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Exportar Borrador (PNG)
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- PANEL DERECHO: VISTA PREVIA DEL DIPLOMA (WYSIWYG) -->
+    <section class="flex-grow flex justify-center items-start overflow-x-auto custom-scrollbar pb-8">
+        
+        <!-- Contenedor tamaño real carta horizontal (11 x 8.5 pulgadas @ 96 DPI = 1056 x 816 px) -->
+        <div id="diploma-preview" class="diploma-container relative w-[1056px] min-w-[1056px] h-[816px] border-[16px] border-[#050a15] p-2 bg-white shrink-0 select-none">
+            
+            <!-- Marcos concéntricos dorados de lujo -->
+            <div class="absolute inset-0 border-[6px] border-[#d4af37] m-2 pointer-events-none"></div>
+            <div class="absolute inset-0 border border-[#d4af37] m-5 pointer-events-none"></div>
+            
+            <!-- Ornamentos clásicos de escuadra en las 4 esquinas -->
+            <div class="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-[#050a15]"></div>
+            <div class="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-[#050a15]"></div>
+            <div class="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-[#050a15]"></div>
+            <div class="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-[#050a15]"></div>
+            
+            <!-- Contenido del Diploma -->
+            <div class="w-full h-full flex flex-col items-center justify-center p-12 text-center z-10 relative">
+                
+                <!-- Identidad Institucional -->
+                <div class="mb-4 flex flex-col items-center">
+                    <h2 class="diploma-title text-[#050a15] text-4xl font-bold tracking-[0.25em] mb-1">COLEGIO IPTCE</h2>
+                    <p class="text-gray-500 text-[0.7rem] font-bold tracking-[0.3em] uppercase">Instituto Profesional de Técnicas Comerciales Especializadas</p>
+                </div>
+
+                <!-- Línea decorativa dorada y escudo -->
+                <div class="w-[75%] flex items-center justify-center gap-6 my-4">
+                    <div class="h-[1.5px] bg-gradient-to-r from-transparent via-[#d4af37] to-[#d4af37] flex-grow"></div>
+                    <!-- Icono SVG en lugar de imagen para nitidez pura -->
+                    <div class="text-[#050a15]">
+                        <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="h-[1.5px] bg-gradient-to-l from-transparent via-[#d4af37] to-[#d4af37] flex-grow"></div>
+                </div>
+
+                <!-- Título del Honor -->
+                <h1 class="diploma-title text-[#d4af37] text-4xl font-bold tracking-[0.15em] mb-8 drop-shadow-sm uppercase">Diploma de Excelencia Académica</h1>
+
+                <p class="text-gray-500 text-[0.75rem] font-bold tracking-[0.25em] uppercase mb-4">Se otorga con honor el presente reconocimiento a:</p>
+                
+                <!-- Nombre del Estudiante -->
+                <div class="mb-6 relative inline-block min-w-[70%]">
+                    <p id="previewNombre" class="diploma-serif italic text-[#050a15] text-[2.75rem] font-bold pb-2 z-10 relative">[Nombre del Estudiante]</p>
+                    <div class="absolute bottom-0 left-0 w-full border-b-[2px] border-[#050a15]/20"></div>
+                </div>
+
+                <!-- Párrafo de Certificación adaptado a Materia/Logros (Línea amarilla corregida) -->
+                <div class="max-w-4xl mx-auto text-gray-800 text-[1.05rem] leading-[1.8] font-medium px-4">
+                    Por haber demostrado un rendimiento excepcional y alta dedicación en la asignatura de 
+                    <!-- Se eliminaron las clases border-b-2 border-[#d4af37] que causaban el glitch visual en html2canvas al hacer salto de línea -->
+                    <span id="previewAsignatura" class="font-bold text-[#050a15] px-1">[Asignatura]</span>, 
+                    alcanzando un destacado promedio de 
+                    <span id="previewPromedio" class="font-bold text-[#050a15] font-mono">[0.0]</span>/100 
+                    durante el periodo correspondiente al <span id="previewPeriodo" class="font-bold text-[#050a15]">Primer Bimestre</span> 
+                    del Ciclo Escolar <span class="font-bold text-[#050a15]">2026</span>; sobresaliendo especialmente 
+                    <span id="previewConector" class="font-semibold text-[#050a15]">por su logro de</span> 
+                    <span id="previewLogro" class="italic text-gray-700 font-semibold">[logro específico del estudiante en el área]</span>.
+                </div>
+
+                <!-- Fecha Automática de Emisión -->
+                <p id="previewFecha" class="diploma-serif italic text-gray-500 text-sm mt-10"></p>
+
+                <!-- Firmas Autógrafas Estructuradas -->
+                <div class="w-full flex justify-between px-20 absolute bottom-12">
+                    <div class="flex flex-col items-center">
+                        <div class="w-56 h-[1.5px] bg-[#050a15] mb-2"></div>
+                        <p class="text-[#050a15] font-bold text-xs uppercase tracking-wide">Daniel Véliz Gudiel</p>
+                        <p class="text-gray-500 text-[0.65rem] font-bold uppercase tracking-[0.15em] mt-0.5">Coordinador Académico</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-56 h-[1.5px] bg-[#050a15] mb-2"></div>
+                        <p class="text-[#050a15] font-bold text-xs uppercase tracking-wide">Marta Josefina Paniagua Lara</p>
+                        <p class="text-gray-500 text-[0.65rem] font-bold uppercase tracking-[0.15em] mt-0.5">Directora General</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // --- MAPEO DE ELEMENTOS DEL DOM ---
+    const inputs = {
+        nombre: document.getElementById("inputNombre"),
+        asignatura: document.getElementById("inputAsignatura"),
+        promedio: document.getElementById("inputPromedio"),
+        periodo: document.getElementById("inputPeriodo"),
+        conector: document.getElementById("inputConector"),
+        logro: document.getElementById("inputLogro")
+    };
+    
+    const previews = {
+        nombre: document.getElementById("previewNombre"),
+        asignatura: document.getElementById("previewAsignatura"),
+        promedio: document.getElementById("previewPromedio"),
+        periodo: document.getElementById("previewPeriodo"),
+        conector: document.getElementById("previewConector"),
+        logro: document.getElementById("previewLogro"),
+        fecha: document.getElementById("previewFecha")
+    };
+
+    const btnDescargarImagen = document.getElementById("btnDescargarImagen");
+    const btnDescargarPDF = document.getElementById("btnDescargarPDF");
+    const diplomaPreview = document.getElementById("diploma-preview");
+
+    // --- FORMATEO AUTOMÁTICO DE FECHAS EN ESPAÑOL ---
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const fechaActual = new Date();
+    const textoFechaLarga = `Dado en la Ciudad de Guatemala, a los ${fechaActual.getDate()} días del mes de ${meses[fechaActual.getMonth()]} de ${fechaActual.getFullYear()}.`;
+    previews.fecha.textContent = textoFechaLarga;
+
+    // --- MANEJADOR DE ACTUALIZACIÓN EN TIEMPO REAL (WYSIWYG) ---
+    function actualizarDiploma() {
+        previews.nombre.textContent = inputs.nombre.value.trim() || "[Nombre del Estudiante]";
+        previews.asignatura.textContent = inputs.asignatura.value.trim() || "[Asignatura]";
+        
+        // Validación y formateo del promedio (máximo 100)
+        let promVal = inputs.promedio.value;
+        if (promVal !== "") {
+            const num = parseFloat(promVal);
+            previews.promedio.textContent = isNaN(num) ? "0.0" : num.toFixed(1);
+        } else {
+            previews.promedio.textContent = "[0.0]";
+        }
+        
+        previews.periodo.textContent = inputs.periodo.value;
+        previews.conector.textContent = inputs.conector.value;
+        previews.logro.textContent = inputs.logro.value.trim() || "[logro específico del estudiante en el área]";
+    }
+
+    // Vinculación de listeners a los inputs
+    Object.values(inputs).forEach(input => {
+        if(input.tagName === 'SELECT') {
+            input.addEventListener("change", actualizarDiploma);
+        } else {
+            input.addEventListener("input", actualizarDiploma);
+        }
+    });
+
+    // ---------------------------------------------------------
+    // EXPORTACIÓN A IMAGEN (BORRADOR PNG)
+    // ---------------------------------------------------------
+    btnDescargarImagen.addEventListener("click", function() {
+        const originalHTML = this.innerHTML;
+        this.innerHTML = `
+            <svg class="animate-spin h-4 w-4 mr-2 text-gray-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg> Procesando...`;
+        
+        html2canvas(diplomaPreview, {
+            scale: 2, // Multiplicador para asegurar excelente resolución
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        }).then(canvas => {
+            const enlace = document.createElement("a");
+            const nombreArchivo = inputs.nombre.value.replace(/\s+/g, '_') || 'Estudiante';
+            const materiaArchivo = inputs.asignatura.value.replace(/\s+/g, '_') || 'Materia';
+            enlace.download = `Borrador_Diploma_${nombreArchivo}_${materiaArchivo}.png`;
+            enlace.href = canvas.toDataURL("image/png");
+            enlace.click();
+            this.innerHTML = originalHTML;
+        }).catch(err => {
+            console.error("Error al exportar imagen:", err);
+            this.innerHTML = originalHTML;
+        });
+    });
+
+    // ---------------------------------------------------------
+    // EXPORTACIÓN A PDF VECTORIAL (jsPDF NATIVO) - CORREGIDO Y ROBUSTO
+    // ---------------------------------------------------------
+    btnDescargarPDF.addEventListener("click", function() {
+        try {
+            const { jsPDF } = window.jspdf;
+            
+            // Configuración de lienzo Carta (Letter) en Apaisado (Landscape): 792 x 612 puntos PostScript
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+            
+            // Paleta de Colores de la Marca
+            const cNavy = [5, 10, 21];
+            const cGold = [212, 175, 55];
+            const cGrayDark = [40, 40, 40];
+            const cGrayLight = [110, 110, 110];
+            
+            const width = 792;
+            const height = 612;
+
+            // 1. DIBUJAR MARCOS CON MEDIDAS MATEMÁTICAS EXACTAS
+            // Marco de control Navy grueso de contorno
+            doc.setDrawColor(...cNavy);
+            doc.setLineWidth(12);
+            doc.rect(6, 6, width - 12, height - 12);
+            
+            // Marco decorativo intermedio dorado
+            doc.setDrawColor(...cGold);
+            doc.setLineWidth(4);
+            doc.rect(20, 20, width - 40, height - 40);
+            
+            // Marco decorativo fino interior dorado
+            doc.setLineWidth(1);
+            doc.rect(28, 28, width - 56, height - 56);
+
+            // Decoraciones de esquina en escuadra vectoriales
+            doc.setDrawColor(...cNavy);
+            doc.setLineWidth(1.5);
+            const cs = 20; // Tamaño de la escuadra
+            // Superior Izquierda
+            doc.line(35, 35, 35+cs, 35); doc.line(35, 35, 35, 35+cs);
+            // Superior Derecha
+            doc.line(width-35, 35, width-35-cs, 35); doc.line(width-35, 35, width-35, 35+cs);
+            // Inferior Izquierda
+            doc.line(35, height-35, 35+cs, height-35); doc.line(35, height-35, 35, height-35-cs);
+            // Inferior Derecha
+            doc.line(width-35, height-35, width-35-cs, height-35); doc.line(width-35, height-35, width-35, height-35-cs);
+
+            // 2. ENCABEZADO INSTITUCIONAL
+            let currentY = 95;
+            
+            doc.setFont("times", "bold");
+            doc.setFontSize(34);
+            doc.setTextColor(...cNavy);
+            // Simulación de tracking expandido mediante espacios
+            doc.text("C O L E G I O   I P T C E", width/2, currentY, { align: 'center' });
+            
+            currentY += 18;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8.5);
+            doc.setTextColor(...cGrayLight);
+            doc.text("INSTITUTO PROFESIONAL DE TÉCNICAS COMERCIALES ESPECIALIZADAS", width/2, currentY, { align: 'center' });
+
+            currentY += 25;
+
+            // 3. LÍNEAS DE ADORNO Y MEDALLÓN VECTORIAL CENTRAL
+            doc.setDrawColor(...cGold);
+            doc.setLineWidth(1);
+            doc.line(width/2 - 180, currentY + 15, width/2 - 40, currentY + 15);
+            doc.line(width/2 + 40, currentY + 15, width/2 + 180, currentY + 15);
+
+            // Dibujar un bello medallón/escudo geométrico con líneas discretas sólidas
+            doc.setDrawColor(...cNavy);
+            doc.setLineWidth(1.5);
+            const midX = width/2;
+            const midY = currentY;
+            doc.line(midX, midY, midX + 20, midY + 10);
+            doc.line(midX + 20, midY + 10, midX + 20, midY + 25);
+            doc.line(midX + 20, midY + 25, midX, midY + 35);
+            doc.line(midX, midY + 35, midX - 20, midY + 25);
+            doc.line(midX - 20, midY + 25, midX - 20, midY + 10);
+            doc.line(midX - 20, midY + 10, midX, midY);
+            
+            // Estrellas doradas internas del medallón
+            doc.setFont("times", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(...cGold);
+            doc.text("★", width/2, currentY + 23, { align: 'center' });
+
+            currentY += 75;
+
+            // 4. TÍTULO PRINCIPAL DEL CERTIFICADO
+            doc.setFont("times", "bold");
+            doc.setFontSize(36);
+            doc.setTextColor(...cGold);
+            doc.text("DIPLOMA DE EXCELENCIA ACADÉMICA", width/2, currentY, { align: 'center' });
+
+            currentY += 30;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9.5);
+            doc.setTextColor(...cGrayLight);
+            doc.text("SE OTORGA CON HONOR EL PRESENTE RECONOCIMIENTO A:", width/2, currentY, { align: 'center' });
+
+            currentY += 45;
+
+            // 5. NOMBRE DEL ESTUDIANTE (FUENTES ELEGANTES NATIVAS)
+            const nombreEstudiante = inputs.nombre.value.trim() || "_________________________";
+            doc.setFont("times", "italic");
+            doc.setFontSize(34);
+            doc.setTextColor(...cNavy);
+            doc.text(nombreEstudiante, width/2, currentY, { align: 'center' });
+            
+            // Línea elegante de base del nombre
+            const nameWidth = doc.getTextWidth(nombreEstudiante);
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(1.5);
+            doc.line(width/2 - (nameWidth/2) - 20, currentY + 6, width/2 + (nameWidth/2) + 20, currentY + 6);
+
+            currentY += 45;
+
+            // 6. REDACCIÓN Y CÁLCULOS DE TEXTO MIXTO (MÉTODO DE ALINEACIÓN POR FRAGMENTOS)
+            const materiaStr = inputs.asignatura.value.trim() || "[Asignatura]";
+            const promStr = inputs.promedio.value ? parseFloat(inputs.promedio.value).toFixed(1) : "[0.0]";
+            const periodoStr = inputs.periodo.value;
+            const conectorStr = inputs.conector.value; // "por su logro de" o "por sus logros de"
+            const logroStr = inputs.logro.value.trim() || "[logro específico del estudiante en el área]";
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11.5);
+            doc.setTextColor(...cGrayDark);
+
+            // --- RENDERIZADO DE LÍNEA 1: Materia ---
+            let l1_1 = "Por haber demostrado un rendimiento excepcional y alta dedicación en la asignatura de ";
+            let l1_2 = materiaStr + ",";
+            
+            doc.setFont("helvetica", "normal");  let w1_1 = doc.getTextWidth(l1_1);
+            doc.setFont("helvetica", "bold");    let w1_2 = doc.getTextWidth(l1_2);
+            
+            let totalW_l1 = w1_1 + w1_2;
+            let startX_l1 = (width - totalW_l1) / 2;
+
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...cGrayDark); doc.text(l1_1, startX_l1, currentY); startX_l1 += w1_1;
+            doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy);     doc.text(l1_2, startX_l1, currentY);
+            // NOTA: Se ha removido el dibujo manual de la línea dorada debajo de la asignatura 
+            // para evitar cualquier comportamiento visual inesperado (glitches) y que coincida con la vista previa.
+
+            currentY += 18;
+
+            // --- RENDERIZADO DE LÍNEA 2: Promedio, Periodo ---
+            let l2_1 = "alcanzando un destacado promedio de ";
+            let l2_2 = promStr + "/100 ";
+            let l2_3 = "durante el periodo correspondiente al ";
+            let l2_4 = periodoStr;
+
+            doc.setFont("helvetica", "normal");  let w2_1 = doc.getTextWidth(l2_1);
+            doc.setFont("helvetica", "bold");    let w2_2 = doc.getTextWidth(l2_2);
+            doc.setFont("helvetica", "normal");  let w2_3 = doc.getTextWidth(l2_3);
+            doc.setFont("helvetica", "bold");    let w2_4 = doc.getTextWidth(l2_4);
+
+            let totalW_l2 = w2_1 + w2_2 + w2_3 + w2_4;
+            let startX_l2 = (width - totalW_l2) / 2;
+
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...cGrayDark); doc.text(l2_1, startX_l2, currentY); startX_l2 += w2_1;
+            doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy);     doc.text(l2_2, startX_l2, currentY); startX_l2 += w2_2;
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...cGrayDark); doc.text(l2_3, startX_l2, currentY); startX_l2 += w2_3;
+            doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy);     doc.text(l2_4, startX_l2, currentY);
+
+            currentY += 18;
+
+            // --- RENDERIZADO DE LÍNEA 3: Ciclo Escolar y Conector Dinámico ---
+            let l3_1 = "del Ciclo Escolar ";
+            let l3_2 = "2026";
+            let l3_3 = "; sobresaliendo especialmente " + conectorStr + ":";
+
+            doc.setFont("helvetica", "normal");  let w3_1 = doc.getTextWidth(l3_1);
+            doc.setFont("helvetica", "bold");    let w3_2 = doc.getTextWidth(l3_2);
+            doc.setFont("helvetica", "normal");  let w3_3 = doc.getTextWidth(l3_3);
+
+            let totalW_l3 = w3_1 + w3_2 + w3_3;
+            let startX_l3 = (width - totalW_l3) / 2;
+
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...cGrayDark); doc.text(l3_1, startX_l3, currentY); startX_l3 += w3_1;
+            doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy);     doc.text(l3_2, startX_l3, currentY); startX_l3 += w3_2;
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...cGrayDark); doc.text(l3_3, startX_l3, currentY);
+
+            currentY += 22;
+
+            // --- RENDERIZADO DE LÍNEA 4: Logro Específico (En cursiva/itálica con ajuste inteligente de línea) ---
+            doc.setFont("times", "italic");
+            doc.setFontSize(12.5);
+            doc.setTextColor(80, 80, 80);
+            
+            // Multi-línea inteligente por si el logro ingresado es extenso
+            const cleanLogro = `"${logroStr}"`;
+            const splitLogro = doc.splitTextToSize(cleanLogro, 620); // Ancho máximo permitido
+            splitLogro.forEach(line => {
+                doc.text(line, width/2, currentY, { align: 'center' });
+                currentY += 16;
+            });
+
+            currentY += 18;
+
+            // 7. FECHA FORMAL DE EMISIÓN
+            doc.setFont("times", "italic");
+            doc.setFontSize(10.5);
+            doc.setTextColor(...cGrayLight);
+            doc.text(textoFechaLarga, width/2, currentY, { align: 'center' });
+
+            // 8. FIRMAS FIJAS AUTORIZADAS (Posicionamiento perfectamente simétrico)
+            const signY = height - 72;
+            const signWidth = 170;
+            
+            // Autoridad Izquierda: Coordinador Académico (Eje: 1/4 del ancho total + 20pt de desplazamiento)
+            const leftX = width/4 + 20;
+            doc.setDrawColor(...cNavy);
+            doc.setLineWidth(1);
+            doc.line(leftX - (signWidth/2), signY, leftX + (signWidth/2), signY);
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...cNavy);
+            doc.text("DANIEL VÉLIZ GUDIEL", leftX, signY + 13, { align: 'center' });
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.5);
+            doc.setTextColor(...cGrayLight);
+            doc.text("COORDINADOR ACADÉMICO", leftX, signY + 24, { align: 'center' });
+
+            // Autoridad Derecha: Directora General (Eje: 3/4 del ancho total - 20pt de de desplazamiento)
+            const rightX = (width/4 * 3) - 20;
+            doc.line(rightX - (signWidth/2), signY, rightX + (signWidth/2), signY);
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...cNavy);
+            doc.text("MARTA JOSEFINA PANIAGUA LARA", rightX, signY + 13, { align: 'center' });
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.5);
+            doc.setTextColor(...cGrayLight);
+            doc.text("DIRECTORA GENERAL", rightX, signY + 24, { align: 'center' });
+
+            // Descarga directa del archivo PDF Vectorial de Alta Definición
+            const nombreArchivoPDF = inputs.nombre.value.trim() ? `Excelencia_${materiaStr.replace(/\s+/g, '_')}_${inputs.nombre.value.replace(/\s+/g, '_')}.pdf` : 'Diploma_Excelencia_Materia.pdf';
+            doc.save(nombreArchivoPDF);
+        } catch (error) {
+            console.error("Error durante la generación del PDF vectorial:", error);
+        }
+    });
+});
+</script>
+</body>
+</html>

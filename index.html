@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es" class="antialiased dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KRONOS | Sistema de Gestión Global</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#03050a', /* bg-base KRONOS */
+                            800: '#0a0e17', /* bg-surface KRONOS */
+                            700: '#101623', /* bg-surface-hover KRONOS */
+                        },
+                        brand: {
+                            light: '#00f3ff', /* accent-cyan KRONOS */
+                            DEFAULT: '#00e0b0', /* accent-teal KRONOS */
+                            dark: '#9d00ff', /* accent-purple KRONOS */
+                        }
+                    },
+                    transitionTimingFunction: {
+                        'smooth-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    },
+                    animation: {
+                        'blob': 'blob 15s infinite alternate ease-in-out',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '50%': { transform: 'translate(5vw, 5vh) scale(1.1)' },
+                            '100%': { transform: 'translate(-5vw, 10vh) scale(0.9)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #03050a;
+            color: #ffffff;
+            overflow: hidden; 
+        }
+        
+        input::-ms-reveal, input::-ms-clear { display: none; }
+        
+        /* Fondo Ambiental KRONOS */
+        .ambient-background {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(0, 224, 176, 0.04) 0%, transparent 40%),
+                radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 25px 25px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Notificaciones (Toasts) Adaptadas */
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            min-width: 300px; padding: 16px; border-radius: 12px; color: white;
+            background: rgba(10, 14, 23, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; align-items: center; gap: 12px; font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-success { border-left: 4px solid #00e0b0; }
+
+        /* Animaciones de Entrada */
+        #login-screen {
+            opacity: 0;
+            transform: scale(0.97);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        #login-screen.is-loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .is-loaded .stagger-1 { opacity: 1; transform: translateY(0); transition-delay: 0.1s; }
+        .is-loaded .stagger-2 { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+        .is-loaded .stagger-3 { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+        .is-loaded .stagger-4 { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+        .is-loaded .stagger-5 { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+
+        /* Efectos Glassmorphism para Inputs KRONOS */
+        .glass-input {
+            background: rgba(10, 14, 23, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(16, 22, 35, 0.8);
+            border-color: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans h-screen w-screen flex selection:bg-brand-light selection:text-dark-900">
+
+    <div id="preloader" class="fixed inset-0 z-[200] bg-dark-900 flex flex-col items-center justify-center transition-all duration-700 ease-smooth-out origin-center">
+        <div class="relative w-16 h-16">
+            <div class="absolute w-full h-full border-2 border-brand-light/20 rounded-full"></div>
+            <div class="absolute w-full h-full border-2 border-brand-light rounded-full border-t-transparent animate-spin shadow-[0_0_15px_rgba(0,243,255,0.5)]"></div>
+        </div>
+        <p class="mt-8 text-brand-light font-display tracking-[0.3em] text-xs uppercase animate-pulse">Iniciando Red KRONOS</p>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="login-screen" class="flex w-full h-full bg-dark-900 relative z-10">
+        
+        <!-- MITAD IZQUIERDA: Branding Visual -->
+        <div class="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 lg:p-20 overflow-hidden border-r border-white/5">
+            <div class="ambient-background"></div>
+            
+            <!-- Orbes KRONOS -->
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-light/20 rounded-full mix-blend-screen filter blur-[120px] opacity-60 translate-x-1/3 -translate-y-1/3 animate-blob"></div>
+            <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-dark/20 rounded-full mix-blend-screen filter blur-[120px] opacity-40 -translate-x-1/3 translate-y-1/3 animate-blob" style="animation-delay: -5s;"></div>
+
+            <div class="relative z-10 stagger-item stagger-1">
+                <div class="flex items-center gap-4 mb-2">
+                    <!-- Logo KRONOS -->
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+                        <svg class="w-6 h-6 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h1 class="font-display text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+                        KRONOS
+                    </h1>
+                </div>
+                <div class="w-12 h-1 bg-gradient-to-r from-brand-light to-brand rounded-full mt-6 shadow-[0_0_10px_rgba(0,243,255,0.5)]"></div>
+            </div>
+
+            <div class="relative z-10 max-w-lg stagger-item stagger-2">
+                <h2 class="text-4xl lg:text-5xl font-extrabold leading-tight mb-6 text-white font-sans">
+                    Sistema de <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-brand">Gestión Global</span>
+                </h2>
+                <p class="text-gray-400 text-lg leading-relaxed mb-8 font-light">
+                    Plataforma administrativa avanzada para el monitoreo institucional, generación automatizada de documentos y análisis de métricas.
+                </p>
+                
+                <div class="flex gap-6 mt-8 font-display">
+                    <div class="flex items-center gap-3 text-gray-300 bg-dark-800/50 px-4 py-2 rounded-lg border border-white/5 backdrop-blur-sm">
+                        <i class="fa-solid fa-bolt text-brand-light"></i>
+                        <span class="text-xs font-medium tracking-wide uppercase">Tiempo Real</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-gray-300 bg-dark-800/50 px-4 py-2 rounded-lg border border-white/5 backdrop-blur-sm">
+                        <i class="fa-solid fa-shield-halved text-brand"></i>
+                        <span class="text-xs font-medium tracking-wide uppercase">Nivel Global</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10 text-gray-500 text-xs font-display tracking-widest uppercase stagger-item stagger-3">
+                &copy; <span id="year"></span> KRONOS CORE SYSTEM.
+            </div>
+        </div>
+
+        <!-- MITAD DERECHA: Formulario -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative bg-dark-900">
+            <!-- Orbe sutil para versión móvil -->
+            <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-brand-dark/10 rounded-full mix-blend-screen filter blur-[80px] lg:hidden"></div>
+
+            <div class="w-full max-w-md relative z-10">
+                
+                <!-- Encabezado Móvil -->
+                <div class="lg:hidden flex flex-col items-center mb-10 text-white stagger-item stagger-1">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shadow-[0_0_20px_rgba(0,243,255,0.4)] mb-4">
+                        <svg class="w-7 h-7 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h1 class="font-display text-2xl font-bold tracking-tight">KRONOS</h1>
+                    <p class="text-gray-400 text-sm mt-1">Gestión Global</p>
+                </div>
+
+                <div class="mb-10 text-center lg:text-left stagger-item stagger-2">
+                    <h2 class="font-display text-3xl font-bold text-white mb-2">Iniciar Sesión</h2>
+                    <p class="text-gray-400 font-light">Ingrese sus credenciales de administrador.</p>
+                </div>
+
+                <form id="login-form" class="space-y-6">
+                    
+                    <div class="space-y-2 stagger-item stagger-3">
+                        <label for="user" class="text-sm font-medium text-gray-300 block">ID de Usuario</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand-light transition-colors">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <input type="text" id="user" required autocomplete="off"
+                                class="w-full glass-input rounded-xl py-3.5 pl-11 pr-4"
+                                placeholder="Ej. ADMIN-01">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 stagger-item stagger-4">
+                        <label for="pass" class="text-sm font-medium text-gray-300 block">Contraseña</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand-light transition-colors">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <input type="password" id="pass" required 
+                                class="w-full glass-input rounded-xl py-3.5 pl-11 pr-12 text-lg tracking-widest placeholder:tracking-normal placeholder:text-sm"
+                                placeholder="••••••••">
+                            
+                            <button type="button" id="toggle-pass" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-brand-light focus:outline-none transition-colors">
+                                <i class="fa-solid fa-eye" id="eye-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm stagger-item stagger-5">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center justify-center w-5 h-5 rounded border border-white/20 bg-dark-800 group-hover:border-brand-light transition-colors">
+                                <input type="checkbox" class="peer opacity-0 absolute inset-0 cursor-pointer">
+                                <i class="fa-solid fa-check text-[10px] text-dark-900 opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                <div class="absolute inset-0 bg-brand-light rounded opacity-0 peer-checked:opacity-100 -z-10 transition-opacity"></div>
+                            </div>
+                            <span class="text-gray-400 group-hover:text-gray-300 transition-colors">Mantener conexión activa</span>
+                        </label>
+                    </div>
+
+                    <div class="stagger-item stagger-5 pt-2">
+                        <button type="submit" id="submit-btn" class="relative group/btn w-full py-4 rounded-xl bg-white text-dark-900 font-bold overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+                            <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-brand-light to-brand opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                            <span class="relative z-10 flex items-center justify-center gap-2 group-hover/btn:text-white transition-colors duration-300">
+                                Establecer Conexión
+                                <i class="fa-solid fa-arrow-right-to-bracket text-sm group-hover/btn:translate-x-1 transition-transform"></i>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Actualizar año del footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Sistema de Toasts KRONOS
+        window.showToast = function(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icon = type === 'error' 
+                ? '<i class="fa-solid fa-triangle-exclamation text-xl text-red-500"></i>' 
+                : '<i class="fa-solid fa-shield-check text-xl text-brand"></i>';
+                
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); // 400ms para coincidir con la transición
+            }, 4000);
+        };
+
+        // Secuencia de inicio (Preloader)
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const preloader = document.getElementById('preloader');
+                
+                preloader.style.opacity = '0';
+                preloader.style.transform = 'scale(1.05)';
+                
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                    iniciarAnimacionPantalla();
+                }, 700);
+                
+            }, 1200); 
+        });
+
+        function iniciarAnimacionPantalla() {
+            // Simulando una validación de sesión
+            if (localStorage.getItem('kronos_admin_session') === 'true') {
+                window.location.href = 'panel.html';
+                return;
+            }
+            
+            const screen = document.getElementById('login-screen');
+            // Quitamos cualquier fondo forzado temporal, dependemos de las clases de Tailwind
+            document.body.style.backgroundColor = ''; 
+            
+            screen.classList.add('is-loaded');
+        }
+
+        // Funcionalidad de Mostrar/Ocultar Contraseña
+        document.getElementById('toggle-pass').addEventListener('click', function() {
+            const passInput = document.getElementById('pass');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+                eyeIcon.classList.add('text-brand-light');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+                eyeIcon.classList.remove('text-brand-light');
+            }
+        });
+
+        // Intercepción del formulario (Demostración)
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const originalContent = btn.innerHTML;
+            
+            // Estado de carga KRONOS
+            btn.innerHTML = `<span class="relative z-10 flex items-center justify-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Autenticando...</span>`;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            
+            setTimeout(() => {
+                const user = document.getElementById('user').value;
+                const pass = document.getElementById('pass').value;
+
+                // Validación simple para efectos de demo
+                if(user && pass) {
+                    showToast('Acceso concedido. Iniciando enlace...', 'success');
+                    setTimeout(() => {
+                        // Redirigir a tu panel en la vida real
+                        window.location.href = 'panel.html';
+                    }, 1500);
+                } else {
+                    showToast('Error de autenticación. Verifique sus credenciales.', 'error');
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                }
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>

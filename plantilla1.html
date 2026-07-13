@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diploma de Excelencia Académica - IPTCE</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #e2e8f0;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+/* Colores institucionales definidos en variables CSS para fácil acceso */
+:root {
+    --navy: #050a15;
+    --gold: #d4af37;
+}
+
+/* Tipografía elegante para el diploma */
+.diploma-title {
+    font-family: 'Cinzel', serif;
+}
+.diploma-serif {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Efecto de papel realista */
+.diploma-container {
+    background-color: #ffffff;
+    background-image: linear-gradient(to bottom right, rgba(255,255,255,1) 0%, rgba(250,250,245,1) 100%);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02);
+}
+
+/* Scrollbar estilizado */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.premium-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    color: #0f172a;
+    transition: all 0.3s ease;
+}
+.premium-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-800 antialiased overflow-x-hidden">
+
+<header class="bg-[#050a15] border-b-[3px] border-[#d4af37] py-4 px-6 md:px-8 shadow-xl flex items-center justify-between z-50 shrink-0">
+    <div class="flex items-center gap-5">
+        <img src="log.png" alt="Logo IPTCE" class="h-12 w-auto object-contain brightness-0 invert filter drop-shadow-md" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEwdi0uNjdhMi4xMiAyLjEyIDAgMCAwLTEuNS0yLjAxTDEyIDIuNjZMMi41IDcuMzJhMi4xMiAyLjEyIDAgMCAwLTEuNSAyLjAxVjEwbTAgNHYyLjY3YTIuMTIgMi4xMiAwIDAgMCAxLjUgMi4wMWw4IDMuMTZhMi4xMiAyLjEyIDAgMCAwIDEuNS0yLjAxVjE0bS0zIDR2Mm0tNi0ydjJtMTItMTMuODhWMjhIMnoiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIi8+PC9zdmc+'">
+        <div class="hidden sm:block border-l border-gray-700 pl-5">
+            <h1 class="text-white text-xl font-serif font-bold tracking-wider diploma-serif">COLEGIO IPTCE</h1>
+            <p class="text-[#d4af37] text-[0.65rem] font-bold uppercase tracking-[0.2em] mt-0.5">Excelencia Académica</p>
+        </div>
+    </div>
+    <div class="flex gap-4">
+        <button onclick="window.location.href='Proyect1.html'" class="text-gray-400 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-md hover:bg-white/10">
+            Panel Principal
+        </button>
+    </div>
+</header>
+
+<main class="flex-grow flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full p-4 lg:p-8 gap-8">
+    
+    <!-- PANEL IZQUIERDO: FORMULARIO -->
+    <section class="w-full lg:w-[400px] xl:w-[450px] bg-white rounded-xl shadow-xl shadow-gray-200/50 p-6 sm:p-8 border-t-4 border-[#050a15] shrink-0 h-fit">
+        <h2 class="text-xl font-bold text-[#050a15] mb-6 flex items-center gap-2 border-b-2 border-[#d4af37] pb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+            Datos del Galardonado
+        </h2>
+        
+        <form id="diplomaForm" class="space-y-5">
+            <div>
+                <label for="inputNombre" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nombre Completo</label>
+                <input type="text" id="inputNombre" placeholder="Ej. Juan Carlos Pérez" class="premium-input text-sm font-medium">
+            </div>
+            
+            <div>
+                <label for="inputGrado" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Grado y Sección</label>
+                <input type="text" id="inputGrado" placeholder="Ej. 5to Bachillerato 'A'" class="premium-input text-sm font-medium">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="inputPromedio" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Promedio</label>
+                    <input type="number" step="0.01" id="inputPromedio" placeholder="Ej. 98.50" class="premium-input text-sm font-medium font-mono text-center">
+                </div>
+                <div>
+                    <label for="inputCiclo" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ciclo Escolar</label>
+                    <input type="text" id="inputCiclo" value="2026" class="premium-input text-sm font-bold text-center bg-gray-50" readonly>
+                </div>
+            </div>
+
+            <div>
+                <label for="inputBimestre" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Periodo Evaluado</label>
+                <select id="inputBimestre" class="premium-input text-sm font-medium cursor-pointer">
+                    <option value="Primer Bimestre">Primer Bimestre</option>
+                    <option value="Segundo Bimestre">Segundo Bimestre</option>
+                    <option value="Tercer Bimestre">Tercer Bimestre</option>
+                    <option value="Cuarto Bimestre">Cuarto Bimestre</option>
+                    <option value="Quinto Bimestre">Quinto Bimestre</option>
+                    <option value="Ciclo Completo">Ciclo Completo</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-100 mt-6 grid gap-3">
+                <button type="button" id="btnDescargarPDF" class="w-full bg-[#050a15] hover:bg-black text-[#d4af37] font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex justify-center items-center gap-2 group border border-[#050a15]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Generar Diploma Oficial (PDF)
+                </button>
+                <button type="button" id="btnDescargarImagen" class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium py-2.5 px-4 rounded-lg transition-all flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Exportar Borrador (PNG)
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- PANEL DERECHO: VISTA PREVIA -->
+    <section class="flex-grow flex justify-center items-start overflow-x-auto custom-scrollbar pb-8">
+        
+        <!-- Contenedor tamaño real carta horizontal (11 x 8.5 pulgadas aprox 1056 x 816 px) -->
+        <div id="diploma-preview" class="diploma-container relative w-[1056px] min-w-[1056px] h-[816px] border-[16px] border-[#050a15] p-2 bg-white shrink-0">
+            
+            <!-- Marcos internos dorados -->
+            <div class="absolute inset-0 border-[6px] border-[#d4af37] m-2 pointer-events-none"></div>
+            <div class="absolute inset-0 border border-[#d4af37] m-5 pointer-events-none"></div>
+            
+            <!-- Decoraciones esquinas (Opcional visual) -->
+            <div class="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-[#050a15]"></div>
+            <div class="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-[#050a15]"></div>
+            <div class="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-[#050a15]"></div>
+            <div class="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-[#050a15]"></div>
+            
+            <div class="w-full h-full flex flex-col items-center justify-center p-12 text-center z-10 relative">
+                
+                <!-- Encabezado Institucional -->
+                <div class="mb-6 flex flex-col items-center">
+                    <h2 class="diploma-title text-[#050a15] text-4xl font-bold tracking-[0.25em] mb-1">COLEGIO IPTCE</h2>
+                    <p class="text-gray-600 text-xs font-bold tracking-[0.3em] uppercase">Instituto Profesional de Técnicas Comerciales Especializadas</p>
+                </div>
+
+                <!-- Línea decorativa y Logo -->
+                <div class="w-[80%] flex items-center justify-center gap-6 my-6 relative">
+                    <div class="h-[2px] bg-gradient-to-r from-transparent via-[#d4af37] to-[#d4af37] flex-grow"></div>
+                    <div class="h-[2px] bg-gradient-to-l from-transparent via-[#d4af37] to-[#d4af37] flex-grow"></div>
+                </div>
+
+                <!-- Título Principal -->
+                <h1 class="diploma-title text-[#d4af37] text-5xl font-bold tracking-widest mb-10 drop-shadow-sm uppercase">Diploma de Excelencia</h1>
+
+                <p class="text-gray-500 text-sm font-bold tracking-[0.2em] uppercase mb-4">Se otorga el presente reconocimiento a:</p>
+                
+                <!-- Nombre Dinámico -->
+                <div class="mb-8 relative inline-block min-w-[70%]">
+                    <p id="previewNombre" class="diploma-serif italic text-[#050a15] text-5xl font-bold pb-2 z-10 relative">[Nombre del Estudiante]</p>
+                    <div class="absolute bottom-0 left-0 w-full border-b-[3px] border-[#050a15]/20"></div>
+                </div>
+
+                <!-- Párrafo de Certificación -->
+                <p class="text-gray-800 text-base leading-[2] max-w-4xl mx-auto font-medium">
+                    Por haber demostrado un rendimiento excepcional y dedicación ejemplar, obteniendo un promedio sobresaliente de <span id="previewPromedio" class="font-bold text-[#050a15] text-xl border-b-2 border-[#d4af37] px-2">[0.00]</span> en el grado de <span id="previewGrado" class="font-bold text-[#050a15] text-lg">[Grado y Sección]</span> durante el <span id="previewBimestre" class="font-bold text-[#050a15]">Primer Bimestre</span> del Ciclo Escolar <span class="font-bold text-[#050a15]">2026</span>.
+                </p>
+
+                <p id="previewFecha" class="diploma-serif italic text-gray-500 text-sm mt-12"></p>
+
+                <!-- Firmas -->
+                <div class="w-full flex justify-between px-24 mt-16 absolute bottom-16">
+                    <div class="flex flex-col items-center">
+                        <div class="w-64 h-[1.5px] bg-[#050a15] mb-3"></div>
+                        <p class="text-[#050a15] font-bold text-sm uppercase tracking-wide">Daniel Véliz Gudiel</p>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-[0.15em] mt-1">Coordinador Académico</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-64 h-[1.5px] bg-[#050a15] mb-3"></div>
+                        <p class="text-[#050a15] font-bold text-sm uppercase tracking-wide">Marta Josefina Paniagua Lara</p>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-[0.15em] mt-1">Directora General</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // --- ELEMENTOS DEL DOM ---
+    const inputs = {
+        nombre: document.getElementById("inputNombre"),
+        grado: document.getElementById("inputGrado"),
+        promedio: document.getElementById("inputPromedio"),
+        bimestre: document.getElementById("inputBimestre"),
+        ciclo: document.getElementById("inputCiclo")
+    };
+    
+    const previews = {
+        nombre: document.getElementById("previewNombre"),
+        grado: document.getElementById("previewGrado"),
+        promedio: document.getElementById("previewPromedio"),
+        bimestre: document.getElementById("previewBimestre"),
+        fecha: document.getElementById("previewFecha")
+    };
+
+    const btnDescargarImagen = document.getElementById("btnDescargarImagen");
+    const btnDescargarPDF = document.getElementById("btnDescargarPDF");
+    const diplomaPreview = document.getElementById("diploma-preview");
+
+    // --- MANEJO DE FECHA FORMAL ---
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const fechaActual = new Date();
+    const textoFechaLarga = `Dado en la Ciudad de Guatemala, a los ${fechaActual.getDate()} días del mes de ${meses[fechaActual.getMonth()]} de ${fechaActual.getFullYear()}.`;
+    previews.fecha.textContent = textoFechaLarga;
+
+    // --- ACTUALIZACIÓN EN TIEMPO REAL ---
+    function actualizarDiploma() {
+        previews.nombre.textContent = inputs.nombre.value.trim() || "[Nombre del Estudiante]";
+        previews.grado.textContent = inputs.grado.value.trim() || "[Grado y Sección]";
+        previews.promedio.textContent = inputs.promedio.value ? parseFloat(inputs.promedio.value).toFixed(2) : "[0.00]";
+        previews.bimestre.textContent = inputs.bimestre.value;
+    }
+
+    Object.values(inputs).forEach(input => {
+        if(input.tagName === 'SELECT') {
+            input.addEventListener("change", actualizarDiploma);
+        } else {
+            input.addEventListener("input", actualizarDiploma);
+        }
+    });
+
+    // ---------------------------------------------------------
+    // EXPORTACIÓN A IMAGEN (BORRADOR RÁPIDO)
+    // ---------------------------------------------------------
+    btnDescargarImagen.addEventListener("click", function() {
+        const originalHTML = this.innerHTML;
+        this.innerHTML = 'Generando...';
+        
+        html2canvas(diplomaPreview, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        }).then(canvas => {
+            const enlace = document.createElement("a");
+            enlace.download = `Borrador_Diploma_${inputs.nombre.value.replace(/\s+/g, '_') || 'Estudiante'}.png`;
+            enlace.href = canvas.toDataURL("image/png");
+            enlace.click();
+            this.innerHTML = originalHTML;
+        });
+    });
+
+    // ---------------------------------------------------------
+    // EXPORTACIÓN A PDF VECTORIAL (jsPDF NATIVO) - ALTA CALIDAD
+    // ---------------------------------------------------------
+    btnDescargarPDF.addEventListener("click", function() {
+        const { jsPDF } = window.jspdf;
+        
+        // Formato Carta (Letter) en Apaisado (Landscape): 792 x 612 puntos
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+        
+        const cNavy = [5, 10, 21];
+        const cGold = [212, 175, 55];
+        const cGray = [100, 100, 100];
+        
+        const width = 792;
+        const height = 612;
+
+        // 1. DIBUJAR MARCOS
+        // Marco exterior grueso navy
+        doc.setDrawColor(...cNavy);
+        doc.setLineWidth(12);
+        doc.rect(6, 6, width - 12, height - 12);
+        
+        // Marco interno 1 dorado
+        doc.setDrawColor(...cGold);
+        doc.setLineWidth(4);
+        doc.rect(20, 20, width - 40, height - 40);
+        
+        // Marco interno 2 dorado fino
+        doc.setLineWidth(1);
+        doc.rect(28, 28, width - 56, height - 56);
+
+        // Decoraciones esquinas
+        doc.setDrawColor(...cNavy);
+        doc.setLineWidth(1.5);
+        const cs = 20; // corner size
+        // Arriba Izq
+        doc.line(35, 35, 35+cs, 35); doc.line(35, 35, 35, 35+cs);
+        // Arriba Der
+        doc.line(width-35, 35, width-35-cs, 35); doc.line(width-35, 35, width-35, 35+cs);
+        // Abajo Izq
+        doc.line(35, height-35, 35+cs, height-35); doc.line(35, height-35, 35, height-35-cs);
+        // Abajo Der
+        doc.line(width-35, height-35, width-35-cs, height-35); doc.line(width-35, height-35, width-35, height-35-cs);
+
+        // 2. ENCABEZADO
+        let currentY = 100;
+        
+        doc.setFont("times", "bold");
+        doc.setFontSize(36);
+        doc.setTextColor(...cNavy);
+        // Usar espaciado de letras simulado añadiendo espacios
+        doc.text("C O L E G I O   I P T C E", width/2, currentY, { align: 'center' });
+        
+        currentY += 20;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(...cGray);
+        doc.text("INSTITUTO PROFESIONAL DE TÉCNICAS COMERCIALES ESPECIALIZADAS", width/2, currentY, { align: 'center' });
+
+        currentY += 30;
+
+        // 3. LÍNEAS DECORATIVAS Y LOGO CENTRAL
+        doc.setDrawColor(...cGold);
+        doc.setLineWidth(1);
+        doc.line(width/2 - 200, currentY + 30, width/2 - 50, currentY + 30);
+        doc.line(width/2 + 50, currentY + 30, width/2 + 200, currentY + 30);
+
+        // Insertar imagen de logo
+        const logoImg = document.getElementById('preview-logo-img');
+        try {
+            if (logoImg && logoImg.complete && logoImg.naturalWidth > 0 && logoImg.style.display !== 'none') {
+                doc.addImage(logoImg, 'PNG', width/2 - 30, currentY, 60, 60);
+            } else {
+                throw new Error("Sin imagen");
+            }
+        } catch (e) {
+            // Sello vectorial de respaldo
+            doc.setDrawColor(...cGray);
+            doc.circle(width/2, currentY + 30, 25, 'S');
+            doc.setFontSize(8);
+            doc.text("SELLO", width/2, currentY + 32, { align: 'center' });
+        }
+
+        currentY += 90;
+
+        // 4. TÍTULO PRINCIPAL DEL DIPLOMA
+        doc.setFont("times", "bold");
+        doc.setFontSize(40);
+        doc.setTextColor(...cGold);
+        doc.text("DIPLOMA DE EXCELENCIA", width/2, currentY, { align: 'center' });
+
+        currentY += 35;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        doc.text("SE OTORGA EL PRESENTE RECONOCIMIENTO A:", width/2, currentY, { align: 'center' });
+
+        currentY += 50;
+
+        // 5. NOMBRE DEL ESTUDIANTE
+        const nombreEstudiante = inputs.nombre.value.trim() || "_________________________";
+        doc.setFont("times", "italic");
+        doc.setFontSize(38);
+        doc.setTextColor(...cNavy);
+        doc.text(nombreEstudiante, width/2, currentY, { align: 'center' });
+        
+        // Línea bajo el nombre
+        const nameWidth = doc.getTextWidth(nombreEstudiante);
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(1.5);
+        doc.line(width/2 - (nameWidth/2) - 20, currentY + 5, width/2 + (nameWidth/2) + 20, currentY + 5);
+
+        currentY += 50;
+
+        // 6. PÁRRAFO DE CERTIFICACIÓN (Armado manual para resaltar en negrita)
+        const promStr = inputs.promedio.value ? parseFloat(inputs.promedio.value).toFixed(2) : "[0.00]";
+        const gradoStr = inputs.grado.value.trim() || "_________";
+        const bimStr = inputs.bimestre.value;
+        const cicloStr = "2026";
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(13);
+        doc.setTextColor(50, 50, 50);
+
+        // Primer línea del texto
+        let p1_1 = "Por haber demostrado un rendimiento excepcional y dedicación ejemplar, obteniendo un promedio";
+        doc.text(p1_1, width/2, currentY, { align: 'center' });
+        currentY += 20;
+
+        // Segunda línea (Mixta Normal/Bold)
+        // Para centrar un texto mixto, calculamos los anchos
+        let p2_1 = "sobresaliente de ";
+        let p2_2 = promStr;
+        let p2_3 = " en el grado de ";
+        let p2_4 = gradoStr;
+
+        doc.setFont("helvetica", "normal"); let w1 = doc.getTextWidth(p2_1);
+        doc.setFont("helvetica", "bold");   let w2 = doc.getTextWidth(p2_2) + 4; // Padding
+        doc.setFont("helvetica", "normal"); let w3 = doc.getTextWidth(p2_3);
+        doc.setFont("helvetica", "bold");   let w4 = doc.getTextWidth(p2_4);
+        
+        let totalW_line2 = w1 + w2 + w3 + w4;
+        let startX_L2 = (width - totalW_line2) / 2;
+
+        doc.setFont("helvetica", "normal"); doc.text(p2_1, startX_L2, currentY); startX_L2 += w1;
+        doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy); doc.text(p2_2, startX_L2 + 2, currentY); 
+        // Subrayado dorado sutil al promedio
+        doc.setDrawColor(...cGold); doc.setLineWidth(1); doc.line(startX_L2, currentY+2, startX_L2+w2-2, currentY+2);
+        startX_L2 += w2;
+        doc.setFont("helvetica", "normal"); doc.setTextColor(50,50,50); doc.text(p2_3, startX_L2, currentY); startX_L2 += w3;
+        doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy); doc.text(p2_4, startX_L2, currentY);
+        
+        currentY += 20;
+
+        // Tercera línea
+        let p3_1 = "durante el ";
+        let p3_2 = bimStr;
+        let p3_3 = " del Ciclo Escolar ";
+        let p3_4 = cicloStr + ".";
+
+        doc.setFont("helvetica", "normal"); let w5 = doc.getTextWidth(p3_1);
+        doc.setFont("helvetica", "bold");   let w6 = doc.getTextWidth(p3_2);
+        doc.setFont("helvetica", "normal"); let w7 = doc.getTextWidth(p3_3);
+        doc.setFont("helvetica", "bold");   let w8 = doc.getTextWidth(p3_4);
+
+        let totalW_line3 = w5 + w6 + w7 + w8;
+        let startX_L3 = (width - totalW_line3) / 2;
+
+        doc.setFont("helvetica", "normal"); doc.setTextColor(50,50,50); doc.text(p3_1, startX_L3, currentY); startX_L3 += w5;
+        doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy); doc.text(p3_2, startX_L3, currentY); startX_L3 += w6;
+        doc.setFont("helvetica", "normal"); doc.setTextColor(50,50,50); doc.text(p3_3, startX_L3, currentY); startX_L3 += w7;
+        doc.setFont("helvetica", "bold");   doc.setTextColor(...cNavy); doc.text(p3_4, startX_L3, currentY);
+
+        currentY += 40;
+
+        // 7. FECHA
+        doc.setFont("times", "italic");
+        doc.setFontSize(11);
+        doc.setTextColor(100, 100, 100);
+        doc.text(textoFechaLarga, width/2, currentY, { align: 'center' });
+
+        // 8. FIRMAS AUTORIZADAS (Abajo fijo)
+        const signY = height - 70;
+        const signWidth = 180;
+        
+        // Firma Izquierda (Coordinador)
+        const leftX = width/4 + 20;
+        doc.setDrawColor(...cNavy);
+        doc.setLineWidth(1);
+        doc.line(leftX - (signWidth/2), signY, leftX + (signWidth/2), signY);
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...cNavy);
+        doc.text("DANIEL VÉLIZ GUDIEL", leftX, signY + 15, { align: 'center' });
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text("COORDINADOR ACADÉMICO", leftX, signY + 28, { align: 'center' });
+
+        // Firma Derecha (Directora)
+        const rightX = (width/4 * 3) - 20;
+        doc.line(rightX - (signWidth/2), signY, rightX + (signWidth/2), signY);
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...cNavy);
+        doc.text("MARTA JOSEFINA PANIAGUA LARA", rightX, signY + 15, { align: 'center' });
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text("DIRECTORA GENERAL", rightX, signY + 28, { align: 'center' });
+
+        // Guardar archivo PDF
+        const nombreArchivo = inputs.nombre.value.trim() ? `Diploma_${inputs.nombre.value.replace(/\s+/g, '_')}.pdf` : 'Diploma_Oficial_IPTCE.pdf';
+        doc.save(nombreArchivo);
+    });
+});
+</script>
+</body>
+</html>

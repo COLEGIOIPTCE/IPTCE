@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTCE - Carta de Prácticas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Librerías para generación de PDF y Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Google Fonts: Inter (UI) y Playfair Display (Documento Formal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darknavy: '#050a15', 
+                        gold: '#d4af37',
+                        panelbg: '#f8fafc',
+                        subtle: '#64748b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    boxShadow: {
+                        'paper': '0 20px 40px -10px rgba(0,0,0,0.1), 0 10px 20px -5px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados para la vista previa y scrollbars */
+        .paper-container {
+            width: 816px; /* Ancho simulado de hoja carta (96dpi * 8.5) */
+            height: 1056px; /* Alto simulado de hoja carta (96dpi * 11) */
+            background-color: #ffffff;
+            background-image: linear-gradient(to bottom, #ffffff 0%, #fcfcfc 100%);
+            transform-origin: top center;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Responsive scaling para pantallas pequeñas */
+        @media (max-width: 1024px) {
+            .paper-container {
+                transform: scale(0.8);
+                margin-bottom: -200px;
+            }
+        }
+        @media (max-width: 768px) {
+            .paper-container {
+                transform: scale(0.5);
+                margin-bottom: -500px;
+                transform-origin: top left;
+            }
+        }
+
+        .input-focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+            border-color: #d4af37;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen overflow-hidden font-sans flex flex-col">
+
+    <!-- Header App -->
+    <header class="bg-darknavy text-white px-6 py-4 flex items-center justify-between shadow-md z-20 relative">
+        <div class="flex items-center gap-3">
+            <div class="bg-gold p-2 rounded-lg shadow-inner-light">
+                <i data-lucide="briefcase" class="w-5 h-5 text-darknavy"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">Portal IPTCE</h1>
+                <p class="text-xs text-gold/80 font-medium">Emisión de Cartas de Práctica</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2 text-sm text-gray-300 bg-white/10 px-3 py-1.5 rounded-full">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span id="header-date"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal a dos columnas -->
+    <main class="flex-grow flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- PANEL IZQUIERDO: FORMULARIO -->
+        <section class="w-full md:w-[400px] lg:w-[450px] bg-panelbg border-r border-gray-200 overflow-y-auto custom-scrollbar flex-shrink-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
+            <div class="p-6 flex-grow">
+                
+                <h2 class="text-lg font-bold text-darknavy mb-6 flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <i data-lucide="file-edit" class="w-5 h-5 text-gold"></i>
+                    Datos del Documento
+                </h2>
+
+                <div class="space-y-5">
+                    <!-- DATOS DEL JEFE / DESTINATARIO -->
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Destinatario</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Profesión (Título)</label>
+                                <input type="text" id="bossProf" value="Licenciado" placeholder="Ej. Licenciado, Arquitecto..." class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Cargo del Jefe</label>
+                                <input type="text" id="bossCharge" value="Gerente de Recursos Humanos" placeholder="Ej. Gerente General" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Nombre del Jefe</label>
+                            <input type="text" id="bossName" value="Carlos Roberto López" placeholder="Nombre completo" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Empresa / Institución</label>
+                            <input type="text" id="company" value="Corporación Ejemplo S.A." placeholder="Nombre de la empresa" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                        </div>
+                    </div>
+
+                    <!-- DATOS DEL ALUMNO Y PRÁCTICA -->
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alumno y Práctica</h3>
+                        
+                        <div>
+                            <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Carrera</label>
+                            <input type="text" id="studentCareer" value="Perito en Administración de Empresas" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Nombre del Alumno</label>
+                            <input type="text" id="studentName" value="María Fernanda Pérez García" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Horas a realizar</label>
+                                <input type="text" id="pracHours" value="200" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-subtle mb-1.5 uppercase">Fecha de inicio</label>
+                                <input type="text" id="pracDate" value="01 de septiembre" placeholder="Ej. 15 de Octubre" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm transition-all input-focus-ring">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción (Fijos al fondo) -->
+            <div class="p-6 bg-white border-t border-gray-200 space-y-3">
+                <button id="btn-download-pdf" class="w-full bg-darknavy hover:bg-[#0a1226] text-white font-medium py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 group">
+                    <i data-lucide="file-down" class="w-5 h-5 group-hover:-translate-y-1 transition-transform"></i>
+                    Generar PDF Oficial
+                </button>
+                <button id="btn-download-img" class="w-full bg-white border-2 border-gray-200 hover:border-gold hover:text-gold text-gray-700 font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    Descargar Borrador (PNG)
+                </button>
+            </div>
+        </section>
+
+        <!-- PANEL DERECHO: VISTA PREVIA -->
+        <section class="flex-grow overflow-y-auto p-4 sm:p-10 flex justify-center items-start custom-scrollbar bg-gray-200/50">
+            
+            <div id="preview-container" class="paper-container shadow-paper relative bg-white font-serif text-[#1e293b] overflow-hidden">
+                
+                <!-- MARCA DE AGUA (WATERMARK) -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none z-0">
+                    <img src="SELLO.png" alt="Marca de Agua" class="w-[80%] h-auto object-contain grayscale" onerror="this.style.display='none'">
+                </div>
+
+                <!-- BORDES PREMIUM INSTITUCIONALES -->
+                <div class="absolute inset-0 border-[16px] border-white z-20 pointer-events-none"></div>
+                <div class="absolute inset-[16px] border-2 border-darknavy z-20 pointer-events-none"></div>
+                <div class="absolute inset-[20px] border border-gold z-20 pointer-events-none"></div>
+
+                <!-- CONTENIDO DEL DOCUMENTO -->
+                <div class="p-[10%] pt-[12%] pb-[10%] flex flex-col h-full relative z-10">
+                    
+                    <!-- ENCABEZADO REDISEÑADO -->
+                    <div class="mb-8 text-center relative">
+                        <div class="flex justify-center items-center gap-4 mb-3">
+                            <img src="SELLO.png" id="doc-logo" alt="Logo IPTCE" class="h-16 w-auto object-contain" onerror="this.style.display='none'">
+                            <div class="text-left">
+                                <h2 class="text-darknavy font-bold text-3xl tracking-widest uppercase">Colegio IPTCE</h2>
+                                <p class="text-[0.65rem] text-gray-500 font-sans uppercase tracking-[0.2em] font-semibold mt-0.5">Instituto Profesional de Técnicas Comerciales Especializadas</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Líneas separadoras elegantes -->
+                        <div class="w-full h-[2px] bg-darknavy mt-4 mb-1"></div>
+                        <div class="w-full h-[1px] bg-gold mb-3"></div>
+                        
+                        <!-- Datos de contacto en línea limpia -->
+                        <p class="text-[0.65rem] font-sans text-gray-600 font-medium tracking-wide flex justify-center gap-4 flex-wrap">
+                            <span><strong class="text-darknavy">Dir:</strong> 7a. Av. 3-40 Zona 1</span>
+                            <span><strong class="text-darknavy">Tels:</strong> 2232-0733 • 2220-1851 • 2309-5994</span>
+                            <span><strong class="text-darknavy">Web:</strong> colegioiptce.com</span>
+                            <span><strong class="text-darknavy">Email:</strong> iptce@hotmail.com</span>
+                        </p>
+                    </div>
+
+                    <!-- FECHA -->
+                    <div class="text-right text-sm text-gray-800 mb-10 font-medium">
+                        Guatemala, <span id="current-date" class="italic"></span>
+                    </div>
+
+                    <!-- DATOS DEL DESTINATARIO -->
+                    <div class="mb-10 text-sm leading-relaxed text-darknavy">
+                        <p id="prev-boss-prof" class="font-bold text-base capitalize"></p>
+                        <p id="prev-boss-name" class="font-bold text-base uppercase"></p>
+                        <p id="prev-boss-charge" class="capitalize"></p>
+                        <p id="prev-company" class="uppercase font-bold"></p>
+                        <p>Presente</p>
+                    </div>
+
+                    <!-- SALUDO AUTOMÁTICO -->
+                    <p class="text-sm mb-6 font-bold text-darknavy italic">
+                        Estimado(a) <span id="prev-greeting" class="capitalize"></span>:
+                    </p>
+
+                    <!-- CUERPO DE LA CARTA -->
+                    <div class="flex-grow doc-text space-y-6 text-[0.95rem] leading-[1.8] text-gray-800 text-justify">
+                        <p class="indent-10">
+                            Reciban un cordial saludo de Colegio IPTCE.
+                        </p>
+                        <p class="indent-10">
+                            Dentro del Pensum de la Carrera de <strong id="prev-student-career" class="uppercase text-darknavy">PERITO EN ADMINISTRACIÓN DE EMPRESAS</strong>, previo a obtener el Título que los acredita en su especialidad, los alumnos de SEXTO grado deben realizar su Práctica Supervisada de <strong id="prev-prac-hours" class="text-darknavy">200</strong> horas a partir del <strong id="prev-prac-date" class="text-darknavy">01 de septiembre</strong> del año en curso.
+                        </p>
+                        <p class="indent-10">
+                            El (la) estudiante <strong id="prev-student-name" class="uppercase text-darknavy border-b border-gray-300 pb-0.5">MARÍA FERNANDA PÉREZ GARCÍA</strong>, solicita realizar sus prácticas en tan prestigiosa empresa y así tener la oportunidad de finalizar su carrera.
+                        </p>
+                        <p class="indent-10">
+                            En caso de ser aceptado (a) como practicante favor enviar confirmación por escrito con el (la) interesado (a).
+                        </p>
+                        <p class="indent-10">
+                            Agradecemos desde ya su colaboración, suscribiéndonos,
+                        </p>
+                    </div>
+
+                    <!-- DESPEDIDA -->
+                    <div class="mt-8 mb-20 text-[0.95rem] text-gray-800">
+                        Atentamente,
+                    </div>
+
+                    <!-- FIRMAS REDISEÑADAS -->
+                    <div class="grid grid-cols-2 gap-12 mt-auto mb-10 px-4">
+                        <div class="text-center relative">
+                            <div class="border-t border-darknavy w-full mb-2"></div>
+                            <p class="font-bold text-darknavy text-sm uppercase tracking-wide">Lic. Daniel Veliz M. A.</p>
+                            <p class="text-xs text-gray-600 mt-1 uppercase tracking-widest font-sans">Coordinador</p>
+                            <div class="w-8 h-[2px] bg-gold mx-auto mt-2"></div>
+                        </div>
+                        <div class="text-center relative">
+                            <div class="border-t border-darknavy w-full mb-2"></div>
+                            <p class="font-bold text-darknavy text-sm uppercase tracking-wide">PEM Marta Lara</p>
+                            <p class="text-xs text-gray-600 mt-1 uppercase tracking-widest font-sans">Directora</p>
+                            <div class="w-8 h-[2px] bg-gold mx-auto mt-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- PIE DE PÁGINA PREMIUM -->
+                    <div class="text-center w-full mt-4">
+                        <p class="text-[0.55rem] font-sans text-gray-500 leading-relaxed uppercase tracking-wider">
+                            <span class="text-gold font-bold">♦</span> Básicos 
+                            <span class="text-gold font-bold">♦</span> Perito en Administración de Empresas 
+                            <span class="text-gold font-bold">♦</span> Perito en Electrónica <br>
+                            <span class="text-gold font-bold">♦</span> Perito en Mercadotecnia y Publicidad 
+                            <span class="text-gold font-bold">♦</span> Bachillerato en Computación 
+                            <span class="text-gold font-bold">♦</span> Diseño Gráfico
+                        </p>
+                        <p class="font-serif italic font-bold text-base text-darknavy mt-3 tracking-widest">
+                            "IPTCE, como un segundo hogar..."
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // Obtener fecha en español
+        const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+        const todayStr = new Date().toLocaleDateString('es-ES', dateOptions);
+        document.getElementById('header-date').textContent = todayStr;
+        document.getElementById('current-date').textContent = todayStr;
+
+        // Referencias de Inputs y Preview Spans
+        const inputs = {
+            bossProf: document.getElementById('bossProf'),
+            bossName: document.getElementById('bossName'),
+            bossCharge: document.getElementById('bossCharge'),
+            company: document.getElementById('company'),
+            studentCareer: document.getElementById('studentCareer'),
+            pracHours: document.getElementById('pracHours'),
+            pracDate: document.getElementById('pracDate'),
+            studentName: document.getElementById('studentName')
+        };
+
+        const prevSpans = {
+            bossProf: document.getElementById('prev-boss-prof'),
+            bossName: document.getElementById('prev-boss-name'),
+            bossCharge: document.getElementById('prev-boss-charge'),
+            company: document.getElementById('prev-company'),
+            greeting: document.getElementById('prev-greeting'),
+            studentCareer: document.getElementById('prev-student-career'),
+            pracHours: document.getElementById('prev-prac-hours'),
+            pracDate: document.getElementById('prev-prac-date'),
+            studentName: document.getElementById('prev-student-name')
+        };
+
+        // Función de Sincronización Tiempo Real
+        function syncData() {
+            prevSpans.bossProf.textContent = inputs.bossProf.value;
+            prevSpans.bossName.textContent = inputs.bossName.value;
+            prevSpans.bossCharge.textContent = inputs.bossCharge.value;
+            prevSpans.company.textContent = inputs.company.value;
+            
+            prevSpans.studentCareer.textContent = inputs.studentCareer.value;
+            prevSpans.pracHours.textContent = inputs.pracHours.value;
+            prevSpans.pracDate.textContent = inputs.pracDate.value;
+            prevSpans.studentName.textContent = inputs.studentName.value;
+
+            // Lógica para deducir el apellido del jefe para el saludo
+            let greetingName = "Director(a)"; // fallback
+            if(inputs.bossName.value) {
+                const nameParts = inputs.bossName.value.trim().split(' ');
+                // Tomar la última palabra como apellido, o la primera si solo hay una
+                const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
+                greetingName = lastName;
+            }
+            const profPrefix = inputs.bossProf.value ? inputs.bossProf.value + " " : "";
+            prevSpans.greeting.textContent = profPrefix + greetingName;
+        }
+
+        // Asignar eventos
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', syncData);
+        });
+        
+        // Carga inicial
+        syncData();
+
+
+        // ---------------------------------------------------------
+        // MOTOR DE GENERACIÓN PDF VECTORIAL (jsPDF) - CALIDAD PREMIUM
+        // ---------------------------------------------------------
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ format: 'letter', unit: 'pt' });
+            
+            // Colores Institucionales
+            const colorDarkNavy = [5, 10, 21];
+            const colorGold = [212, 175, 55];
+            const colorBlack = [20, 20, 20];
+            const colorGray = [80, 80, 80];
+
+            const marginX = 60;
+            const contentWidth = 492; // 612 - 120
+            let currentY = 60;
+
+            // --- 1. BORDES PREMIUM ---
+            doc.setDrawColor(...colorDarkNavy);
+            doc.setLineWidth(2);
+            doc.rect(20, 20, 572, 752); // Borde grueso exterior
+            
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(0.5);
+            doc.rect(24, 24, 564, 744); // Borde fino interior
+
+            // --- 2. ENCABEZADO REDISEÑADO ---
+            doc.setFont("times", "bold");
+            doc.setFontSize(26);
+            doc.setTextColor(...colorDarkNavy);
+            doc.text("COLEGIO IPTCE", 306, currentY, { align: 'center' });
+            
+            currentY += 14;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorGray);
+            doc.text("INSTITUTO PROFESIONAL DE TÉCNICAS COMERCIALES ESPECIALIZADAS", 306, currentY, { align: 'center' });
+
+            // Líneas decorativas debajo del título
+            currentY += 12;
+            doc.setDrawColor(...colorDarkNavy);
+            doc.setLineWidth(1.5);
+            doc.line(marginX, currentY, 612 - marginX, currentY);
+            
+            currentY += 3;
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(0.5);
+            doc.line(marginX, currentY, 612 - marginX, currentY);
+
+            // Datos de contacto
+            currentY += 14;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorBlack);
+            const contactText = "Dir: 7a. Av. 3-40 Zona 1   •   Tels: 2232-0733 / 2220-1851 / 2309-5994   •   Web: colegioiptce.com   •   Email: iptce@hotmail.com";
+            doc.text(contactText, 306, currentY, { align: 'center' });
+
+            // --- 3. FECHA ---
+            currentY += 45;
+            doc.setFont("times", "italic");
+            doc.setFontSize(11);
+            doc.text(`Guatemala, ${document.getElementById('current-date').textContent}`, 612 - marginX, currentY, { align: 'right' });
+
+            // --- 4. DATOS DEL DESTINATARIO ---
+            currentY += 35;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...colorDarkNavy);
+            
+            doc.text((inputs.bossProf.value || "Profesión").toUpperCase(), marginX, currentY);
+            currentY += 14;
+            doc.text((inputs.bossName.value || "Nombre del Jefe").toUpperCase(), marginX, currentY);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(...colorBlack);
+            currentY += 14;
+            doc.text(inputs.bossCharge.value || "Cargo del Jefe", marginX, currentY);
+            
+            doc.setFont("helvetica", "bold");
+            currentY += 14;
+            doc.text((inputs.company.value || "Nombre de la Empresa").toUpperCase(), marginX, currentY);
+            
+            doc.setFont("helvetica", "normal");
+            currentY += 14;
+            doc.text("Presente", marginX, currentY);
+
+            // --- 5. SALUDO AUTOMÁTICO ---
+            currentY += 30;
+            doc.setFont("times", "bolditalic");
+            doc.setTextColor(...colorDarkNavy);
+            doc.setFontSize(12);
+            
+            let greetingName = "Director(a)";
+            if (inputs.bossName.value) {
+                const nameParts = inputs.bossName.value.trim().split(' ');
+                const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
+                greetingName = lastName;
+            }
+            const prof = inputs.bossProf.value ? inputs.bossProf.value + " " : "";
+            doc.text(`Estimado(a) ${prof}${greetingName}:`, marginX, currentY);
+
+            // --- 6. CUERPO (CON NEGRITAS VECTORIALES) ---
+            currentY += 30;
+            const lineHeight = 16;
+            doc.setTextColor(...colorBlack);
+            
+            function writeMixedParagraphs(doc, paragraphs, startX, startY, maxWidth, lineHeight) {
+                let currentY = startY;
+                paragraphs.forEach(paragraph => {
+                    let currentX = startX + 35; // Sangría inicial más pronunciada
+                    paragraph.forEach(part => {
+                        doc.setFont("times", part.bold ? "bold" : "normal");
+                        doc.setTextColor(...(part.bold ? colorDarkNavy : colorBlack)); // Texto bold en azul oscuro
+                        
+                        let words = part.text.split(" ");
+                        words.forEach((word, index) => {
+                            if (word === "" && index !== words.length - 1) {
+                                currentX += doc.getTextWidth(" ");
+                                return;
+                            }
+                            let wordWidth = doc.getTextWidth(word);
+                            if (currentX + wordWidth > startX + maxWidth) {
+                                currentX = startX; // Nueva línea, sin sangría
+                                currentY += lineHeight;
+                            }
+                            doc.text(word, currentX, currentY);
+                            currentX += wordWidth;
+                            
+                            if (index < words.length - 1) {
+                                currentX += doc.getTextWidth(" ");
+                            }
+                        });
+                    });
+                    currentY += lineHeight * 1.8; // Espacio entre párrafos
+                });
+                return currentY;
+            }
+
+            const p1 = [{ text: "Reciban un cordial saludo de Colegio IPTCE.", bold: false }];
+            const p2 = [
+                { text: "Dentro del Pensum de la Carrera de ", bold: false },
+                { text: (inputs.studentCareer.value || "CARRERA").toUpperCase(), bold: true },
+                { text: ", previo a obtener el Título que los acredita en su especialidad, los alumnos de SEXTO grado deben realizar su Práctica Supervisada de ", bold: false },
+                { text: inputs.pracHours.value || "0", bold: true },
+                { text: " horas a partir del ", bold: false },
+                { text: inputs.pracDate.value || "fecha indicada", bold: true },
+                { text: " del año en curso.", bold: false }
+            ];
+            const p3 = [
+                { text: "El (la) estudiante ", bold: false },
+                { text: (inputs.studentName.value || "ALUMNO").toUpperCase(), bold: true },
+                { text: ", solicita realizar sus prácticas en tan prestigiosa empresa y así tener la oportunidad de finalizar su carrera.", bold: false }
+            ];
+            const p4 = [{ text: "En caso de ser aceptado (a) como practicante favor enviar confirmación por escrito con el (la) interesado (a).", bold: false }];
+            const p5 = [{ text: "Agradecemos desde ya su colaboración, suscribiéndonos,", bold: false }];
+
+            currentY = writeMixedParagraphs(doc, [p1, p2, p3, p4, p5], marginX, currentY, contentWidth, lineHeight);
+            
+            // Despedida
+            currentY += 20;
+            doc.setFont("times", "normal");
+            doc.setTextColor(...colorBlack);
+            doc.text("Atentamente,", marginX, currentY);
+
+            // --- 7. FIRMAS REDISEÑADAS ---
+            const signY = 620; // Ancladas más abajo
+            doc.setDrawColor(...colorDarkNavy);
+            doc.setLineWidth(0.5);
+
+            // Firma 1 (Coordinador)
+            doc.line(marginX + 20, signY, marginX + 180, signY);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(...colorDarkNavy);
+            doc.text("Lic. Daniel Veliz M. A.", marginX + 100, signY + 14, { align: 'center' });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...colorGray);
+            doc.text("COORDINADOR", marginX + 100, signY + 24, { align: 'center' });
+            
+            // Acento dorado Firma 1
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(1.5);
+            doc.line(marginX + 90, signY + 30, marginX + 110, signY + 30);
+
+            // Firma 2 (Directora)
+            doc.setDrawColor(...colorDarkNavy);
+            doc.setLineWidth(0.5);
+            doc.line(612 - marginX - 180, signY, 612 - marginX - 20, signY);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(...colorDarkNavy);
+            doc.text("PEM Marta Lara", 612 - marginX - 100, signY + 14, { align: 'center' });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...colorGray);
+            doc.text("DIRECTORA", 612 - marginX - 100, signY + 24, { align: 'center' });
+
+            // Acento dorado Firma 2
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(1.5);
+            doc.line(612 - marginX - 110, signY + 30, 612 - marginX - 90, signY + 30);
+
+            // --- 8. PIE DE PÁGINA INSTITUCIONAL ---
+            const footY = 705;
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            
+            // Función para dibujar lista con viñetas doradas
+            function drawBulletList(textArr, yPos) {
+                let fullWidth = 0;
+                textArr.forEach(t => fullWidth += doc.getTextWidth(t) + 15); // +15 por la viñeta y espacios
+                let startX = 306 - (fullWidth / 2); // Centrar
+                
+                textArr.forEach((t, i) => {
+                    doc.setTextColor(...colorGold);
+                    doc.text("♦", startX, yPos);
+                    doc.setTextColor(...colorGray);
+                    doc.text(t, startX + 6, yPos);
+                    startX += doc.getTextWidth(t) + 18;
+                });
+            }
+
+            drawBulletList(["BÁSICOS", "PERITO EN ADMINISTRACIÓN DE EMPRESAS", "PERITO EN ELECTRÓNICA"], footY);
+            drawBulletList(["PERITO EN MERCADOTECNIA Y PUBLICIDAD", "BACHILLERATO EN COMPUTACIÓN", "DISEÑO GRÁFICO"], footY + 12);
+
+            // Lema final
+            doc.setFont("times", "bolditalic");
+            doc.setFontSize(13);
+            doc.setTextColor(...colorDarkNavy);
+            doc.text('"IPTCE, como un segundo hogar..."', 306, footY + 32, { align: 'center', charSpace: 1 });
+
+            // Guardar PDF
+            doc.save('Carta_Practicas_IPTCE.pdf');
+        });
+
+        // ---------------------------------------------------------
+        // EXPORTAR COMO IMAGEN (Borrador Rápido)
+        // ---------------------------------------------------------
+        document.getElementById('btn-download-img').addEventListener('click', () => {
+            const previewContainer = document.getElementById('preview-container');
+            const btn = document.getElementById('btn-download-img');
+            const originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Generando...';
+            lucide.createIcons();
+
+            html2canvas(previewContainer, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Borrador_Carta_IPTCE.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            });
+        });
+    </script>
+</body>
+</html>

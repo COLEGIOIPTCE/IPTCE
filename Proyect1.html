@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es" class="antialiased dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MULTI KRONOS - Workspace de Plantillas</title>
+    
+    <!-- Fuentes: Inter y JetBrains Mono (Estilo KRONOS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#03050a', /* bg-base KRONOS */
+                            800: '#0a0e17', /* bg-surface KRONOS */
+                            700: '#101623', /* bg-surface-hover KRONOS */
+                            card: 'rgba(10, 14, 23, 0.65)',
+                        },
+                        brand: {
+                            light: '#00f3ff', /* accent-cyan KRONOS */
+                            DEFAULT: '#00e0b0', /* accent-teal KRONOS */
+                            dark: '#9d00ff', /* accent-purple KRONOS */
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 15s infinite alternate ease-in-out',
+                        'fade-in': 'fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '50%': { transform: 'translate(5vw, 5vh) scale(1.1)' },
+                            '100%': { transform: 'translate(-5vw, 10vh) scale(0.9)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Scrollbar KRONOS */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 243, 255, 0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.3); }
+
+        body {
+            background-color: #03050a;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            /* Variable CSS controlada por JS para el efecto de scroll */
+            --scroll-progress: 0;
+        }
+
+        /* Overlay dinámico para oscurecer y cambiar el tono al bajar */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(3,5,10,0) 0%, rgba(20,5,35,0.7) 100%);
+            opacity: var(--scroll-progress);
+            z-index: -1;
+            pointer-events: none;
+            transition: opacity 0.2s ease-out;
+        }
+
+        /* Replicando fondo ambiental KRONOS con rotación de color dinámica */
+        .ambient-background {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(0, 224, 176, 0.04) 0%, transparent 40%),
+                radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 25px 25px;
+            z-index: -2;
+            pointer-events: none;
+            /* El filtro cambia los colores sutilmente hacia el morado/azul profundo al hacer scroll */
+            filter: hue-rotate(calc(var(--scroll-progress) * 60deg));
+            transition: filter 0.2s ease-out;
+        }
+
+        /* Tarjetas re-estilizadas al formato module-card de KRONOS */
+        .glass-card {
+            background: rgba(10, 14, 23, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.08) !important;
+            box-shadow: none;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(16, 22, 35, 0.85);
+            border-color: rgba(0, 243, 255, 0.3) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(0, 243, 255, 0.05) !important;
+            transform: translateY(-8px) !important;
+        }
+
+        /* Header KRONOS */
+        .glass-header {
+            background: rgba(3, 5, 10, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.08);
+        }
+
+        .hidden-card {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative selection:bg-brand-light selection:text-dark-900">
+
+    <!-- Fondo Ambiental KRONOS -->
+    <div class="ambient-background"></div>
+
+    <!-- Fondos Animados (Blobs adaptados a orbes KRONOS) -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" id="animatedBlobs">
+        <div class="absolute top-0 -left-10 w-[40vw] h-[40vw] bg-brand-light/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+        <div class="absolute -bottom-10 -right-5 w-[30vw] h-[30vw] bg-brand-dark/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style="animation-delay: -5s;"></div>
+        <div class="absolute top-1/2 left-1/3 w-[25vw] h-[25vw] bg-brand/5 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style="animation-delay: -10s;"></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        
+        <!-- Navbar / Header (Sin sección de perfil) -->
+        <nav class="glass-header sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                <!-- Logo con enlace de retorno al Panel -->
+                <a href="panel.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.3)] group-hover:shadow-[0_0_20px_rgba(0,243,255,0.6)] transition-all">
+                        <svg class="w-5 h-5 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h1 class="font-display font-bold text-xl md:text-2xl tracking-tight text-white flex items-center gap-2">
+                        MULTI <span class="text-brand-light">KRONOS</span>
+                        <span class="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-light/10 text-brand-light border border-brand-light/30 uppercase tracking-wider">
+                            Directorio
+                        </span>
+                    </h1>
+                </a>
+
+                <!-- Buscador Integrado en el Header -->
+                <div class="w-full max-w-md hidden md:block relative group ml-auto">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-500 group-focus-within:text-brand-light transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" id="searchInputDesktop" class="block w-full pl-10 pr-4 py-2 bg-dark-800/50 border border-white/10 rounded-lg leading-5 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-light/50 focus:bg-dark-800 focus:ring-1 focus:ring-brand-light/50 transition-all text-sm backdrop-blur-sm" placeholder="Buscar documento o plantilla...">
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-6 w-full flex-grow pt-10 pb-20">
+            
+            <!-- Cabecera de Sección -->
+            <header class="mb-10 animate-slide-up">
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-3">Repositorio Documental</h2>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <p class="text-gray-400 text-base font-light">
+                        Seleccione una plantilla para iniciar la generación automatizada.
+                    </p>
+                    <div class="flex items-center gap-2 text-sm text-brand-light bg-brand-light/10 px-3 py-1.5 rounded-lg border border-brand-light/20 backdrop-blur-sm font-display">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" /></svg>
+                        <span id="resultsCount">Módulos disponibles</span>
+                    </div>
+                </div>
+
+                <!-- Buscador Móvil -->
+                <div class="mt-6 md:hidden relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-500 group-focus-within:text-brand-light transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" id="searchInputMobile" class="block w-full pl-10 pr-4 py-3 bg-dark-800/50 border border-white/10 rounded-xl leading-5 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-light/50 focus:ring-1 focus:ring-brand-light/50 transition-all text-sm backdrop-blur-sm" placeholder="Buscar documento...">
+                </div>
+            </header>
+
+            <!-- Mensaje Sin Resultados -->
+            <div id="noResults" class="hidden-card flex flex-col items-center justify-center py-20 glass-card rounded-2xl animate-fade-in mb-8">
+                <div class="w-16 h-16 rounded-full bg-dark-800 flex items-center justify-center border border-brand-light/20 mb-4 shadow-[0_0_15px_rgba(0,243,255,0.1)]">
+                    <svg class="w-8 h-8 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white">Ningún módulo encontrado</h3>
+                <p class="text-gray-400 mt-2 text-sm font-light">Intenta usar otros términos de búsqueda.</p>
+            </div>
+
+            <!-- GRID DE PLANTILLAS -->
+            <div id="templatesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <!-- TARJETA 1 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-indigo-500/20 hover:border-indigo-500/40 hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] hover:-translate-y-1">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla1.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Diploma de Excelencia Académica</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Formato oficial para reconocimiento de alto rendimiento.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Campos dinámicos de nombre y promedio.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">Marcos García</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla1.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-indigo-600 to-blue-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 2 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-emerald-500/20 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:-translate-y-1" style="animation-delay: 100ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla2.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Constancia de Buena Conducta</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Carta de buena conducta dirigida para múltiples personas.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Ayuda al estudiante a respaldar y tener un buen perfil.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Tiene valor para cualquier entidad, colegio, etcétera.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">James García</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla2.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 3 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-amber-500/20 hover:border-amber-500/40 hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] hover:-translate-y-1" style="animation-delay: 200ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla3.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Citatorio para Padres</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Notificación formal de presencia en institución.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Motivos académicos o conductuales, con talón de acuse.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">James García</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla3.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 4 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-purple-500/20 hover:border-purple-500/40 hover:shadow-[0_0_30px_rgba(168,85,247,0.1)] hover:-translate-y-1" style="animation-delay: 300ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla4.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(168,85,247,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Ficha Médica (Express)</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Versión simplificada para salidas extracurriculares.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Enfoque en información crítica de urgencias.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">James García</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla4.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Documento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 5 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-violet-500/20 hover:border-violet-500/40 hover:shadow-[0_0_30px_rgba(139,92,246,0.1)] hover:-translate-y-1" style="animation-delay: 300ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla5.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-400 to-fuchsia-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(139,92,246,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Reconocimiento por Materia</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-violet-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Diplomas por excelencia académica y proyectos.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-violet-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Diseño para alumnos destacados por materia.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-violet-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Impacto visual: <strong class="text-white font-medium">Creativo y Motivador</strong>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">Daniel Flores</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla5.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Reconocimiento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Reconocimiento
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 6 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-blue-500/20 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(37,99,235,0.1)] hover:-translate-y-1" style="animation-delay: 400ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla6.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(37,99,235,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Carta de Prácticas (E1)</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Diseño Corporativo Tradicional de Alto Nivel.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Enfoque en el prestigio institucional.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Versión: <strong class="text-white font-medium">Empresarial Ejecutiva</strong>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">Daniel Flores</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla6.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Estilo 1
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Estilo 1
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- TARJETA 7 -->
+                <article class="template-card glass-card rounded-2xl p-6 flex flex-col relative group transition-all duration-300 animate-slide-up border-emerald-500/20 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:-translate-y-1" style="animation-delay: 500ms;">
+                    <div class="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-dark-800 border border-white/5">
+                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-[10px] font-display text-gray-400">plantilla7.html</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-3">Carta de Prácticas (E2)</h3>
+                    <ul class="space-y-2.5 mb-8 flex-grow text-gray-300 text-sm font-light">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Diseño Corporativo Moderno con Impacto.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Resalta habilidades y perfil del estudiante.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Objetivo: <strong class="text-white font-medium">Prestigio y Modernidad</strong>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Autor: <strong class="text-white font-medium">Daniel Flores</strong>
+                        </li>
+                    </ul>
+                    <a href="plantilla7.html" class="relative group/btn overflow-hidden w-full py-3.5 rounded-xl bg-white text-dark-900 text-sm font-bold text-center transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] block mt-auto">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            Generar Estilo 2
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                        <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0"></div>
+                        <span class="absolute inset-0 z-10 flex items-center justify-center gap-2 opacity-0 group-hover/btn:opacity-100 text-white transition-opacity duration-300">
+                            Generar Estilo 2
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </span>
+                    </a>
+                </article>
+
+                <!-- ========================================================================= -->
+                <!-- ESPACIO PARA AGREGAR NUEVAS PLANTILLAS MÁS TARDE -->
+                <!-- ========================================================================= -->
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Efecto Inmersivo de Scroll
+        // Cambia gradualmente los colores de acento al hacer scroll hacia abajo
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            // Calculamos el porcentaje de scroll para que llegue al máximo de color justo antes del final
+        const docHeight = document.body.offsetHeight;
+        const winHeight = window.innerHeight;
+        
+        if(docHeight > winHeight) {
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            // Limitamos entre 0 y 1
+            const clampedPercent = Math.max(0, Math.min(1, scrollPercent));
+            
+            // Actualizamos la variable CSS que controla la opacidad y los filtros
+            document.body.style.setProperty('--scroll-progress', clampedPercent);
+        }
+    });
+
+    // Lógica para el buscador y conteo de módulos
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.template-card');
+        const countDisplay = document.getElementById('resultsCount');
+        const searchInputDesktop = document.getElementById('searchInputDesktop');
+        const searchInputMobile = document.getElementById('searchInputMobile');
+        const noResults = document.getElementById('noResults');
+
+        // Actualizar contador
+        function updateCount(count) {
+            countDisplay.innerHTML = `<strong>${count}</strong> módulos disponibles`;
+        }
+
+        updateCount(cards.length);
+
+        // Función de filtrado
+        function performSearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                // Obtener todo el texto dentro de la tarjeta
+                const cardText = card.textContent.toLowerCase();
+                
+                if (cardText.includes(searchTerm)) {
+                    card.classList.remove('hidden-card');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden-card');
+                }
+            });
+
+            updateCount(visibleCount);
+
+            // Mostrar el estado de "Ningún módulo encontrado" si el conteo es 0
+            if (visibleCount === 0) {
+                noResults.classList.remove('hidden-card');
+            } else {
+                noResults.classList.add('hidden-card');
+            }
+        }
+
+        // Listener Buscador de Escritorio
+        if (searchInputDesktop) {
+            searchInputDesktop.addEventListener('input', (e) => {
+                performSearch(e.target.value);
+                if (searchInputMobile) searchInputMobile.value = e.target.value; // Sincroniza al móvil
+            });
+        }
+
+        // Listener Buscador Móvil
+        if (searchInputMobile) {
+            searchInputMobile.addEventListener('input', (e) => {
+                performSearch(e.target.value);
+                if (searchInputDesktop) searchInputDesktop.value = e.target.value; // Sincroniza al escritorio
+            });
+        }
+    });
+</script>
+</body>
+</html>

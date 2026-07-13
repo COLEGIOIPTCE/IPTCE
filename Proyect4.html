@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal del Estudiante | IPTCE (KRONOS OS)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts KRONOS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Configuración Tailwind KRONOS -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['JetBrains Mono', 'monospace'],
+                        title: ['Inter', 'sans-serif'], 
+                    },
+                    colors: {
+                        dark: {
+                            900: '#03050a', 
+                            800: '#0a0e17', 
+                            700: '#101623', 
+                        },
+                        brand: {
+                            light: '#00f3ff', 
+                            DEFAULT: '#00e0b0', 
+                            dark: '#9d00ff', 
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 15s infinite alternate ease-in-out',
+                        'spin-slow': 'spin 3s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '50%': { transform: 'translate(5vw, 5vh) scale(1.1)' },
+                            '100%': { transform: 'translate(-5vw, 10vh) scale(0.9)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            /* Variables Core KRONOS para inyecciones CSS */
+            --bg-base: #03050a;
+            --bg-surface: rgba(13, 18, 30, 0.5);
+            --bg-surface-hover: rgba(20, 28, 45, 0.8);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --accent-cyan: #00f3ff;
+            --accent-teal: #00e0b0;
+            --accent-purple: #9d00ff;
+            --text-pure: #ffffff;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            background-color: var(--bg-base); 
+            color: var(--text-pure);
+            overflow-x: hidden;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Fondos Ambientales KRONOS */
+        .ambient-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        /* Loaders Optimizados */
+        .loader {
+            border: 2px solid rgba(0, 243, 255, 0.2);
+            border-radius: 50%;
+            border-top: 2px solid var(--accent-cyan);
+            width: 20px; height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        .loader-dark {
+            border: 2px solid rgba(157, 0, 255, 0.2);
+            border-top: 2px solid var(--accent-purple);
+            width: 20px; height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            border-radius: 50%;
+        }
+
+        /* Efecto Typewriter KRONOS */
+        .cursor-blink {
+            display: inline-block; width: 8px; background-color: var(--accent-cyan);
+            animation: blink 1s step-end infinite;
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .fade-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Contenedores Glassmorphism KRONOS */
+        .glass-input {
+            background: rgba(10, 14, 23, 0.5) !important;
+            border: 1px solid var(--border-subtle) !important;
+            color: var(--text-pure) !important;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus, .glass-input:not([disabled]):hover {
+            background: rgba(16, 22, 35, 0.8) !important;
+            border-color: rgba(0, 243, 255, 0.5) !important;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1) !important;
+            outline: none;
+        }
+        .glass-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .module-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+        }
+
+        /* Toast KRONOS */
+        @keyframes progress { from { width: 100%; } to { width: 0%; } }
+        .toast-progress-active { animation: progress 5s linear forwards; }
+        #toast { background: rgba(10, 14, 23, 0.9); border: 1px solid var(--border-subtle); backdrop-filter: blur(15px); }
+        #toast-title { color: var(--text-pure); }
+        #toast-msg { color: var(--text-muted); }
+        #toast-icon-box { background: rgba(0, 243, 255, 0.1); color: var(--accent-cyan); }
+        #toast-progress { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-teal)); }
+
+        /* Scrollbar Cyberpunk */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.3); }
+
+        /* =========================================================================
+           INTERCEPTOR CSS PARA EL CÓDIGO INYECTADO DESDE SCRIPT.JS (Bimestres y Tablas)
+           ========================================================================= */
+        #bimestres-grid > div {
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--border-subtle) !important;
+            color: var(--text-pure) !important;
+            border-radius: 16px !important;
+            position: relative; overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        #bimestres-grid > div:hover {
+            border-color: rgba(0, 243, 255, 0.3) !important;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 243, 255, 0.05) !important;
+            transform: translateY(-5px) !important;
+        }
+
+        #bimestres-grid .bg-white,
+        #bimestres-grid .bg-slate-50,
+        #bimestres-grid .bg-gray-100,
+        #bimestres-grid [class*="bg-white"] {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #bimestres-grid > div > div:first-child {
+            background: rgba(5, 8, 17, 0.8) !important;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.1) !important;
+        }
+
+        #bimestres-grid h3 { 
+            color: var(--text-pure) !important; 
+            font-family: 'JetBrains Mono', monospace !important; 
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.2) !important;
+        }
+        
+        #bimestres-grid p, #bimestres-grid span { color: var(--text-muted) !important; }
+        #bimestres-grid .text-xl.font-bold, 
+        #bimestres-grid .text-2xl,
+        #bimestres-grid .text-blue-500,
+        #bimestres-grid .text-blue-600 { 
+            color: var(--accent-cyan) !important; 
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4) !important;
+        }
+        
+        #bimestres-grid table { border-color: var(--border-subtle) !important; }
+        
+        #bimestres-grid th { 
+            background: rgba(0, 243, 255, 0.05) !important; 
+            color: var(--accent-cyan) !important; 
+            border-color: var(--border-subtle) !important; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 700 !important;
+        }
+        
+        #bimestres-grid td { border-color: var(--border-subtle) !important; color: var(--text-muted) !important; transition: all 0.2s ease; }
+        
+        #bimestres-grid tbody tr:hover, 
+        #bimestres-grid tbody tr[class*="hover:bg-"] { 
+            background-color: transparent !important; 
+        }
+        
+        #bimestres-grid tbody tr:hover td { 
+            background-color: rgba(0, 243, 255, 0.12) !important; 
+            color: #ffffff !important; 
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.6) !important; 
+            border-top: 1px solid rgba(0, 243, 255, 0.3) !important; 
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3) !important; 
+        }
+        
+        #comentario-analisis .ai-card {
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--border-subtle) !important;
+            transition: all 0.3s ease;
+        }
+        #comentario-analisis .ai-card:hover { border-color: var(--accent-purple) !important; background: rgba(157, 0, 255, 0.05) !important; }
+        #comentario-analisis .ai-card p.text-slate-800 { color: var(--text-pure) !important; }
+        #comentario-analisis .ai-card .bg-white { background: rgba(0,0,0,0.3) !important; border: 1px solid var(--border-subtle) !important; }
+        
+        #comentarios-cualitativos { color: var(--text-muted) !important; }
+        #comentarios-cualitativos strong { color: var(--accent-cyan) !important; font-weight: 600; }
+        
+        /* Ajuste de bala para los comentarios IA para que se vea bien durante el tipeo */
+        .ai-comment-item {
+            position: relative;
+            padding-left: 1.25rem;
+        }
+        .ai-comment-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--accent-cyan) !important; 
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+    </style>
+</head>
+<body class="min-h-[100dvh] selection:bg-brand-light selection:text-dark-900">
+
+    <div class="ambient-grid"></div>
+
+    <!-- MENSAJES (Toasts) -->
+    <div id="toast" class="fixed top-4 right-4 sm:top-6 sm:right-6 z-[100] transform transition-all duration-500 translate-x-[120%] opacity-0 w-[calc(100vw-2rem)] sm:max-w-sm shadow-2xl rounded-2xl overflow-hidden">
+        <div class="p-4 sm:p-5">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.2)]" id="toast-icon-box">
+                    <i id="toast-icon-i" class="fa-solid fa-bell text-xl"></i>
+                </div>
+                <div class="flex-1 pt-1">
+                    <p id="toast-title" class="text-sm font-bold font-display">Notificación</p>
+                    <p id="toast-msg" class="mt-1 text-xs font-medium leading-relaxed">Mensaje del sistema...</p>
+                </div>
+                <button onclick="hideToast()" class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 transition-all active:scale-95">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        <div class="h-1 w-full bg-dark-900"><div id="toast-progress" class="h-full w-0 shadow-[0_0_10px_#00f3ff]"></div></div>
+    </div>
+
+    <!-- SECCIÓN DE LOGIN (Diseño Split-Screen KRONOS) -->
+    <div id="login-container" class="login-wrapper min-h-[100dvh] flex items-center justify-center p-4 sm:p-6 relative z-10">
+        <!-- Tarjeta Principal Glass -->
+        <div class="w-full max-w-[950px] bg-dark-800/80 backdrop-blur-xl rounded-3xl overflow-hidden fade-in relative border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row min-h-[550px]">
+            
+            <!-- Mitad Izquierda (Branding KRONOS) -->
+            <div class="md:w-1/2 p-10 sm:p-14 flex flex-col justify-center relative overflow-hidden border-r border-white/5">
+                
+                <!-- Orbes KRONOS Flotantes -->
+                <div class="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-light/10 rounded-full mix-blend-screen filter blur-[80px] translate-x-1/3 -translate-y-1/3 animate-blob"></div>
+                <div class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-dark/15 rounded-full mix-blend-screen filter blur-[80px] -translate-x-1/3 translate-y-1/3 animate-blob" style="animation-delay: -5s;"></div>
+                
+                <!-- Contenido -->
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+                            <svg class="w-5 h-5 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        </div>
+                        <h2 class="text-4xl font-black text-white tracking-tight font-display">IPTCE</h2>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2 tracking-wide uppercase">PORTAL DEL ESTUDIANTE</h3>
+                    <p class="text-[10px] font-display text-brand-light uppercase tracking-[0.3em] mb-6">Powered by KRONOS OS</p>
+                    
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs font-light">
+                        Acceso seguro al entorno de gestión académica del Colegio IPTCE. Motorizado por la tecnología e Inteligencia Artificial de KRONOS.
+                    </p>
+
+                    <!-- Efecto Máquina de Escribir -->
+                    <div class="h-8 flex items-center">
+                        <p class="text-white font-display text-xs sm:text-sm font-bold uppercase tracking-widest bg-dark-900/50 py-2 px-4 rounded-lg border border-brand-light/20 shadow-[inset_0_0_10px_rgba(0,243,255,0.05)]">
+                            <span id="typewriter-text"></span><span class="cursor-blink">&nbsp;</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mitad Derecha (Formulario) -->
+            <div class="md:w-1/2 p-8 sm:p-14 flex flex-col justify-center relative bg-dark-900/50">
+                
+                <div class="mb-10 text-center lg:text-left">
+                    <h2 class="text-3xl font-bold text-white font-display mb-2">Conexión Segura</h2>
+                    <p class="text-sm text-gray-400">Verificando credenciales de acceso institucional.</p>
+                </div>
+
+                <div class="space-y-5">
+                    
+                    <!-- Select Nivel Educativo -->
+                    <div class="space-y-1.5 group">
+                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1 group-focus-within:text-brand-light transition-colors">Nivel Operativo (Grado)</label>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand-light transition-colors">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <select id="select-grado" onchange="cargarAlumnos()" class="w-full glass-input rounded-xl py-3.5 pl-12 pr-10 text-sm font-semibold appearance-none cursor-pointer">
+                                <option value="" class="bg-dark-900">Seleccionar bloque...</option>
+                            </select>
+                            <div class="absolute right-0 pr-4 flex items-center pointer-events-none text-gray-500">
+                                <i id="spinner-grados" class="loader-dark hidden !w-4 !h-4"></i>
+                                <i id="icon-grados" class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Select Estudiante -->
+                    <div class="space-y-1.5 group">
+                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1 group-focus-within:text-brand-light transition-colors">ID Estudiante</label>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand-light transition-colors">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <select id="select-alumno" disabled class="w-full glass-input rounded-xl py-3.5 pl-12 pr-10 text-sm font-semibold appearance-none">
+                                <option value="" class="bg-dark-900">Esperando selección...</option>
+                            </select>
+                            <div class="absolute right-0 pr-4 flex items-center pointer-events-none text-gray-500">
+                                <i id="spinner-alumnos" class="loader-dark hidden !w-4 !h-4"></i>
+                                <i id="icon-alumnos" class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Contraseña -->
+                    <div class="space-y-1.5 group">
+                        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1 group-focus-within:text-brand-light transition-colors">Código de Autorización</label>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand-light transition-colors">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <input type="password" id="input-codigo" disabled placeholder="••••••" class="w-full glass-input rounded-xl py-3.5 pl-12 pr-16 text-sm font-display font-bold tracking-widest placeholder:tracking-normal">
+                            <div class="absolute right-0 pr-4 text-[10px] font-bold text-brand-light uppercase tracking-wider cursor-pointer hover:text-white select-none transition-colors">
+                                <i class="fa-solid fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Ingreso -->
+                    <div class="pt-4">
+                        <button id="btn-ingresar" onclick="iniciarSesion()" disabled class="relative group/btn w-full py-4 rounded-xl bg-white text-dark-900 font-bold overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-display uppercase tracking-wider text-sm">
+                            <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-brand-light to-brand opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 z-0 pointer-events-none"></div>
+                            <span class="relative z-10 flex items-center justify-center gap-3 group-hover/btn:text-white transition-colors duration-300">
+                                <span id="text-ingresar">Inicializar Enlace</span>
+                                <i id="spinner-ingresar" class="loader hidden !w-4 !h-4 !border-dark-900 !border-t-transparent group-hover/btn:!border-white group-hover/btn:!border-t-transparent"></i>
+                                <i class="fa-solid fa-arrow-right-to-bracket transition-transform group-hover/btn:translate-x-1" id="icon-ingresar-arrow"></i>
+                            </span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SECTION KRONOS -->
+    <div id="dashboard-container" class="hidden min-h-[100dvh] flex flex-col fade-in relative z-10">
+        
+        <!-- Navbar KRONOS -->
+        <nav class="bg-dark-800/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto h-16 sm:h-[72px] px-4 sm:px-6 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-brand-light/10 border border-brand-light/30 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.15)]">
+                        <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 class="font-bold text-lg text-white tracking-widest leading-none font-display">COLEGIO IPTCE</h2>
+                        <span class="text-[9px] font-bold text-brand-light uppercase tracking-widest mt-1">Terminal KRONOS Activa</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1 bg-brand/10 border border-brand/20 rounded-full">
+                        <div class="w-2 h-2 bg-brand rounded-full animate-pulse shadow-[0_0_8px_#00e0b0]"></div>
+                        <span class="text-[10px] text-brand font-display uppercase tracking-widest">En Línea</span>
+                    </div>
+                    <button onclick="cerrarSesion()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 text-gray-300 font-bold text-xs uppercase tracking-wider hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 transition-all border border-white/10 active:scale-95">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span class="hidden sm:inline">Desconectar</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+            
+            <!-- Header Institucional KRONOS (Tarjeta Principal) -->
+            <div class="module-card p-8 sm:p-12 mb-10 flex flex-col lg:flex-row items-center gap-8">
+                <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-light/5 rounded-full blur-[80px] -z-10 translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+                
+                <!-- Avatar KRONOS Gradient -->
+                <div id="profile-initial-container" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));" class="h-28 w-28 sm:h-32 sm:w-32 rounded-full text-4xl sm:text-5xl flex items-center justify-center text-white font-black uppercase ring-4 ring-white/10 shadow-[0_0_30px_rgba(157,0,255,0.4)] flex-shrink-0 z-10">
+                    <span id="profile-initial-text">?</span>
+                </div>
+                
+                <div class="text-center lg:text-left flex-1 z-10">
+                    <p class="text-brand-light font-display text-[10px] uppercase tracking-[0.3em] mb-2">Expediente Académico</p>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+                        <span id="dash-nombre">--</span>
+                    </h1>
+                    <div class="flex flex-wrap justify-center lg:justify-start gap-3">
+                        <span id="dash-grado" class="px-4 py-1.5 bg-white/10 border border-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-wider">Grado</span>
+                        <span class="px-4 py-1.5 bg-brand-dark/20 border border-brand-dark/40 text-[#d8b4fe] rounded-lg text-xs font-bold uppercase tracking-wider">
+                            ID Verificado
+                        </span>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-auto bg-dark-900/60 rounded-2xl p-6 text-center lg:text-right border border-white/5 mt-4 lg:mt-0 z-10 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
+                    <p class="text-[10px] font-display uppercase tracking-widest text-gray-400 mb-1">Métrica Global</p>
+                    <div id="dash-promedio-global" class="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-brand font-display drop-shadow-[0_0_15px_rgba(0,243,255,0.3)]">--</div>
+                </div>
+            </div>
+
+            <!-- Título de Tablas y BOTÓN DE DESCARGA PDF -->
+            <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-server text-brand-light text-xl"></i>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Registro de Bloques</h2>
+                </div>
+                <!-- BOTÓN PDF KRONOS -->
+                <button id="btn-descargar-pdf" onclick="generarPDF()" class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-600/20 text-rose-400 border border-rose-500/50 font-bold text-xs uppercase tracking-widest rounded-xl shadow-[0_0_15px_rgba(225,29,72,0.2)] hover:bg-rose-600 hover:text-white transition-all active:scale-95 group">
+                    <i class="fa-solid fa-file-pdf text-lg group-hover:scale-110 transition-transform"></i>
+                    <span id="text-descargar-pdf">Exportar Data PDF</span>
+                </button>
+            </div>
+
+            <!-- Grid de Bimestres -->
+            <div id="bimestres-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-10">
+                <!-- Se inyectan las tablas aquí y son estilizadas por el interceptor CSS de arriba -->
+            </div>
+
+            <!-- SECCIÓN DE ANÁLISIS IA Y GRÁFICAS KRONOS -->
+            <div id="seccion-analisis" class="hidden fade-in pt-8 pb-10 border-t border-white/10">
+                
+                <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-dark to-brand-light text-white flex items-center justify-center shadow-[0_0_20px_rgba(157,0,255,0.4)]">
+                            <i class="fa-solid fa-microchip text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-wide">Análisis Heurístico IA</h2>
+                            <p class="text-xs text-gray-400 font-display mt-1 tracking-wider">Módulos: Zona (50), Examen (40), Asistencia (10)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Columna Izquierda: Los 10 Datos (Insights) -->
+                    <div class="lg:col-span-2">
+                        <h3 class="text-[10px] font-display text-gray-500 uppercase tracking-widest mb-4"><i class="fa-solid fa-database mr-2"></i>Métricas Extraídas</h3>
+                        <div id="comentario-analisis" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Inyección JS estilizada por CSS Interceptor -->
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Reporte Cualitativo con Botón IA -->
+                    <div class="lg:col-span-1 flex flex-col">
+                        <!-- HEADER DEL LOG CON BOTÓN IA KRONOS -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-[10px] font-display text-gray-500 uppercase tracking-widest"><i class="fa-solid fa-terminal mr-2"></i>Log del Sistema</h3>
+                            
+                            <button id="btn-ia-kronos" onclick="iniciarAnalisisIA()" class="px-3 py-1.5 bg-brand-dark/20 text-[#d8b4fe] border border-brand-dark/40 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-brand-dark hover:text-white transition-all shadow-[0_0_15px_rgba(157,0,255,0.2)] flex items-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> Analizar Estudiante
+                            </button>
+                        </div>
+                        
+                        <div class="module-card p-6 flex-1 bg-dark-900/40">
+                            <!-- CONTENEDOR DONDE SE ESCRIBIRÁ LA IA -->
+                            <div id="comentarios-cualitativos" class="space-y-4 text-sm leading-relaxed">
+                                <!-- El estado inicial se inyecta por JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICAS INTERACTIVAS -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+                    <div class="lg:col-span-1 module-card p-6 sm:p-8 flex flex-col bg-dark-900/40">
+                        <div class="mb-4">
+                            <h3 class="text-[10px] font-display text-brand-light uppercase tracking-widest mb-3"><i class="fa-solid fa-chart-simple mr-2"></i>Aislamiento de Módulo</h3>
+                            <select id="select-materia-grafica" class="w-full glass-input rounded-lg block p-2.5 font-semibold text-xs uppercase tracking-wider">
+                            </select>
+                        </div>
+                        <div class="relative flex-1 w-full min-h-[250px] flex items-center justify-center mt-2">
+                            <canvas id="graficaMateriaIndividual"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-1 module-card p-6 sm:p-8 flex flex-col bg-dark-900/40">
+                        <h3 class="text-[10px] font-display text-brand-dark uppercase tracking-widest mb-6"><i class="fa-solid fa-spider mr-2"></i>Radar de Competencias</h3>
+                        <div class="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
+                            <canvas id="graficaRadarCompetencias"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-1 module-card p-6 sm:p-8 flex flex-col bg-dark-900/40">
+                        <h3 class="text-[10px] font-display text-brand uppercase tracking-widest mb-6"><i class="fa-solid fa-wave-square mr-2"></i>Evolución Temporal</h3>
+                        <div class="relative flex-1 w-full min-h-[250px] flex items-center justify-center">
+                            <canvas id="graficaEvolucionGlobal"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+        
+        <!-- FOOTER KRONOS -->
+        <footer class="py-12 text-center border-t border-white/5 bg-dark-900 mt-auto relative z-10 overflow-hidden">
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-light/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="w-12 h-12 bg-white/5 border border-brand-light/30 rounded-xl flex items-center justify-center mx-auto mb-5 shadow-[0_0_15px_rgba(0,243,255,0.1)]">
+                    <svg class="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                </div>
+                <h3 class="text-xl font-bold tracking-widest mb-2 text-white">COLEGIO IPTCE</h3>
+                <p class="text-[10px] text-brand-light font-display tracking-widest uppercase mb-8 leading-relaxed opacity-70">Instituto Profesional de Técnicas<br>Comerciales Especializadas</p>
+                <div class="w-24 h-[1px] bg-gradient-to-r from-transparent via-brand-light/50 to-transparent mx-auto mb-8"></div>
+                <p class="text-[9px] font-display text-gray-500 tracking-[0.3em] mb-2">POWERED BY KRONOS OS</p>
+                <p class="text-xs font-bold text-gray-300 tracking-widest">DANIEL ALEXANDER FLORES SOL</p>
+                <p class="text-[10px] text-gray-600 font-display mt-8">© 2026 V2.0 Enterprise Edition</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts externos INTOCABLES -->
+    <script src="script.js"></script>
+    <script src="script1.js"></script>
+    <script src="pdf.js"></script>
+
+    <script>
+        const textArray = [
+            "SISTEMA EN LÍNEA...", 
+            "EXTRAYENDO DATOS ACADÉMICOS...", 
+            "ENCRIPTACIÓN ACTIVA.", 
+            "BIENVENIDO A KRONOS IPTCE."
+        ];
+        let typeIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        
+        function typeWriter() {
+            const currentText = textArray[typeIndex];
+            const typeWriterElement = document.getElementById("typewriter-text");
+            
+            if (!isDeleting && charIndex <= currentText.length) {
+                typeWriterElement.textContent = currentText.substring(0, charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 100); 
+            } else if (isDeleting && charIndex >= 0) {
+                typeWriterElement.textContent = currentText.substring(0, charIndex);
+                charIndex--;
+                setTimeout(typeWriter, 50); 
+            } else {
+                isDeleting = !isDeleting;
+                if (!isDeleting) {
+                    typeIndex = (typeIndex + 1) % textArray.length;
+                    setTimeout(typeWriter, 100);
+                } else {
+                    setTimeout(typeWriter, 2000); 
+                }
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(typeWriter, 500); 
+        });
+    </script>
+
+    <!-- MOTOR DE ANÁLISIS IA Y GRÁFICAS INTERACTIVAS -->
+    <script>
+        let historialAcademicoGlobal = {};
+        let nombresBimestresGlobal = [];
+        
+        // Almacén de textos IA globales para el botón de simulación
+        window.textosIAGenerados = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const grid = document.getElementById('bimestres-grid');
+            const observer = new MutationObserver((mutations) => {
+                for (let mutation of mutations) {
+                    if (mutation.type === 'childList' && grid.children.length > 0) {
+                        setTimeout(extraerDatosVisualesYGraficar, 800);
+                    } else if (grid.children.length === 0 || grid.innerHTML.includes('No hay registros')) {
+                        document.getElementById('seccion-analisis').classList.add('hidden');
+                    }
+                }
+            });
+            if(grid) observer.observe(grid, { childList: true });
+
+            document.getElementById('select-materia-grafica').addEventListener('change', function() {
+                dibujarGraficaMateriaEspecifica(this.value);
+            });
+        });
+
+        let chartRadarInstancia = null;
+        let chartGlobalInstancia = null;
+        let chartMateriaInstancia = null;
+
+        function extraerDatosVisualesYGraficar() {
+            const tarjetas = document.querySelectorAll('#bimestres-grid > div');
+            if(tarjetas.length === 0) return;
+
+            let nombresBimestres = [];
+            let promediosBimestres = [];
+            let acumuladorMaterias = {};
+            
+            let analisisGlobal = {
+                sumaZona: 0, sumaExamen: 0, sumaAsistencia: 0, totalRegistros: 0,
+                materiasRiesgo: new Set()
+            };
+
+            tarjetas.forEach(tarjeta => {
+                const tituloBimestre = tarjeta.querySelector('h3');
+                if(!tituloBimestre) return;
+                const nombreBimestre = tituloBimestre.innerText.trim();
+
+                let promedioBimestre = 0;
+                const textoContenedor = tarjeta.innerText;
+                const matchPromedio = textoContenedor.match(/Promedio:\s*([0-9.]+)/i);
+                if(matchPromedio) {
+                    promedioBimestre = parseFloat(matchPromedio[1]);
+                } else {
+                    const divProm = tarjeta.querySelector('.text-xl.font-bold, .text-2xl');
+                    if(divProm) promedioBimestre = parseFloat(divProm.innerText);
+                }
+
+                if(promedioBimestre > 0) {
+                    nombresBimestres.push(nombreBimestre);
+                    promediosBimestres.push(promedioBimestre);
+                }
+
+                const filas = tarjeta.querySelectorAll('tbody tr');
+                filas.forEach(fila => {
+                    const celdas = fila.querySelectorAll('td');
+                    if(celdas.length >= 5) {
+                        const materia = celdas[0].innerText.trim();
+                        let val1 = parseFloat(celdas[1].innerText) || 0;
+                        let val2 = parseFloat(celdas[2].innerText) || 0;
+                        let val3 = parseFloat(celdas[3].innerText) || 0;
+                        const notaTotal = parseFloat(celdas[celdas.length - 1].innerText) || 0;
+
+                        analisisGlobal.sumaZona += val1;
+                        analisisGlobal.sumaExamen += val2;
+                        analisisGlobal.sumaAsistencia += val3;
+                        analisisGlobal.totalRegistros++;
+
+                        if(notaTotal < 60) analisisGlobal.materiasRiesgo.add(materia);
+
+                        if(!isNaN(notaTotal)) {
+                            if(!acumuladorMaterias[materia]) {
+                                acumuladorMaterias[materia] = { suma: 0, count: 0, historial: {} };
+                            }
+                            acumuladorMaterias[materia].suma += notaTotal;
+                            acumuladorMaterias[materia].count += 1;
+                            acumuladorMaterias[materia].historial[nombreBimestre] = notaTotal;
+                        }
+                    }
+                });
+            });
+
+            let nombresMaterias = Object.keys(acumuladorMaterias);
+            let promediosMaterias = nombresMaterias.map(m => Number((acumuladorMaterias[m].suma / acumuladorMaterias[m].count).toFixed(2)));
+
+            historialAcademicoGlobal = acumuladorMaterias;
+            nombresBimestresGlobal = nombresBimestres;
+
+            if(nombresBimestres.length > 0 && nombresMaterias.length > 0) {
+                const selectGrafica = document.getElementById('select-materia-grafica');
+                selectGrafica.innerHTML = nombresMaterias.map(m => `<option value="${m}" class="bg-dark-900">${m}</option>`).join('');
+                
+                dibujarGraficasYGenerarIA(nombresMaterias, promediosMaterias, nombresBimestres, promediosBimestres, analisisGlobal);
+                dibujarGraficaMateriaEspecifica(nombresMaterias[0]);
+            }
+        }
+
+        function dibujarGraficaMateriaEspecifica(materia) {
+            const dataMateria = historialAcademicoGlobal[materia];
+            if (!dataMateria) return;
+            const notas = nombresBimestresGlobal.map(bim => dataMateria.historial[bim] || 0);
+            const ctx = document.getElementById('graficaMateriaIndividual').getContext('2d');
+            if (chartMateriaInstancia) chartMateriaInstancia.destroy();
+
+            chartMateriaInstancia = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: nombresBimestresGlobal,
+                    datasets: [{
+                        label: `Rendimiento: ${materia}`,
+                        data: notas,
+                        backgroundColor: '#00f3ff',
+                        borderRadius: 6,
+                        barPercentage: 0.5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { backgroundColor: '#0a0e17', padding: 10, cornerRadius: 8, displayColors: false, titleColor: '#fff', bodyColor: '#00f3ff' } 
+                    },
+                    scales: { 
+                        x: { grid: {display: false}, ticks: {color: '#94a3b8'} }, 
+                        y: { max: 100, beginAtZero: true, border: {display: false}, ticks: {color: '#94a3b8'}, grid: {color: 'rgba(255,255,255,0.05)'} } 
+                    }
+                }
+            });
+        }
+
+        function dibujarGraficasYGenerarIA(nombresMaterias, promediosMaterias, nombresBimestres, promediosBimestres, analisis) {
+            document.getElementById('seccion-analisis').classList.remove('hidden');
+
+            Chart.defaults.font.family = "'JetBrains Mono', monospace";
+            Chart.defaults.color = '#64748b'; 
+            
+            const tooltipOptions = {
+                backgroundColor: '#0a0e17', titleColor: '#fff', bodyColor: '#fff',
+                titleFont: { size: 12, family: "'Inter', sans-serif" },
+                bodyFont: { size: 13, weight: 'bold' },
+                padding: 10, cornerRadius: 8, displayColors: false,
+                borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1
+            };
+
+            const ctxRadar = document.getElementById('graficaRadarCompetencias').getContext('2d');
+            if (chartRadarInstancia) chartRadarInstancia.destroy();
+            
+            chartRadarInstancia = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: nombresMaterias.length > 6 ? nombresMaterias.slice(0, 6) : nombresMaterias,
+                    datasets: [{
+                        label: 'Nivel de Competencia',
+                        data: promediosMaterias.slice(0, 6),
+                        backgroundColor: 'rgba(157, 0, 255, 0.2)',
+                        borderColor: '#9d00ff',
+                        pointBackgroundColor: '#9d00ff',
+                        pointBorderColor: '#03050a',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#9d00ff'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipOptions },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            pointLabels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#94a3b8' },
+                            ticks: { display: false, max: 100, min: 0 }
+                        }
+                    }
+                }
+            });
+
+            const ctxGlobal = document.getElementById('graficaEvolucionGlobal').getContext('2d');
+            if (chartGlobalInstancia) chartGlobalInstancia.destroy();
+            chartGlobalInstancia = new Chart(ctxGlobal, {
+                type: 'line',
+                data: {
+                    labels: nombresBimestres,
+                    datasets: [{
+                        label: 'Promedio General',
+                        data: promediosBimestres,
+                        borderColor: '#00e0b0',
+                        backgroundColor: 'rgba(0, 224, 176, 0.1)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#03050a',
+                        pointBorderColor: '#00e0b0',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipOptions },
+                    scales: { 
+                        x: { grid: {display: false}, ticks: {color: '#94a3b8'} }, 
+                        y: { max: 100, beginAtZero: true, border: {display: false}, ticks: {color: '#94a3b8'}, grid: {color: 'rgba(255,255,255,0.05)'} } 
+                    }
+                }
+            });
+
+            const promGeneral = promediosBimestres[promediosBimestres.length - 1];
+            const indexMejorMat = promediosMaterias.indexOf(Math.max(...promediosMaterias));
+            const indexPeorMat = promediosMaterias.indexOf(Math.min(...promediosMaterias));
+            const indexMejorBim = promediosBimestres.indexOf(Math.max(...promediosBimestres));
+            
+            let avgZona = analisis.totalRegistros ? (analisis.sumaZona / analisis.totalRegistros).toFixed(1) : 0;
+            let avgExamen = analisis.totalRegistros ? (analisis.sumaExamen / analisis.totalRegistros).toFixed(1) : 0;
+            let avgAsist = analisis.totalRegistros ? (analisis.sumaAsistencia / analisis.totalRegistros).toFixed(1) : 0;
+
+            let insights = [];
+            insights.push({ icon: promGeneral >= 70 ? "fa-check text-brand" : "fa-xmark text-rose-500", title: "Estado Global", value: `${promGeneral} pts` });
+            
+            let diff = promediosBimestres.length > 1 ? (promGeneral - promediosBimestres[promediosBimestres.length - 2]).toFixed(1) : 0;
+            insights.push({ icon: diff > 0 ? "fa-arrow-up text-brand" : (diff < 0 ? "fa-arrow-down text-rose-500" : "fa-minus text-gray-500"), title: "Tendencia", value: `${diff > 0 ? '+' : ''}${diff} pts` });
+            insights.push({ icon: "fa-book text-brand-dark", title: "Promedio Zona", value: `${avgZona}/50` });
+            insights.push({ icon: "fa-pen text-brand-light", title: "Prom. Exámenes", value: `${avgExamen}/40` });
+            insights.push({ icon: `fa-clock ${avgAsist < 8 ? "text-orange-500" : "text-brand"}`, title: "Prom. Asistencia", value: `${avgAsist}/10` });
+            insights.push({ icon: "fa-star text-amber-500", title: "Mejor Clase", value: nombresMaterias[indexMejorMat] });
+            insights.push({ icon: "fa-triangle-exclamation text-rose-500", title: "Clase Crítica", value: nombresMaterias[indexPeorMat] });
+            insights.push({ icon: "fa-calendar text-brand-light", title: "Mejor Bimestre", value: nombresBimestres[indexMejorBim] });
+            insights.push({ icon: "fa-shield text-gray-400", title: "En Riesgo", value: `${analisis.materiasRiesgo.size} Materia(s)` });
+            
+            let pAsist = (avgAsist/10)*100;
+            let consejo = pAsist < 80 ? "Falta de Asistencia" : "Mantén el ritmo";
+            insights.push({ icon: "fa-lightbulb text-brand-light", title: "Foco Principal", value: consejo });
+
+            document.getElementById('comentario-analisis').innerHTML = insights.map(item => `
+                <div class="ai-card p-3 rounded-xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0"><i class="fa-solid ${item.icon}"></i></div>
+                    <div class="overflow-hidden">
+                        <p class="text-[9px] font-display text-gray-400 uppercase tracking-wider">${item.title}</p>
+                        <p class="text-xs font-bold text-slate-800 truncate" title="${item.value}">${item.value}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            let c1 = `Registro principal indica que tu mayor fortaleza actual es <strong>${nombresMaterias[indexMejorMat]}</strong>, procesando un rendimiento de ${promediosMaterias[indexMejorMat]} pts.`;
+            let c2 = diff > 0 
+                ? `<strong>Tendencia Positiva:</strong> Has incrementado tu rendimiento global en ${diff} pts durante la última métrica de evaluación.` 
+                : (diff < 0 ? `<strong>Alerta de Rendimiento:</strong> Métrica global disminuida en ${Math.abs(diff)} pts. Se recomienda recalibrar enfoque de estudio.` : `Rendimiento global estable sin fluctuaciones recientes.`);
+            let c3 = `Análisis heurístico detecta déficit en evaluaciones para la materia <strong class="text-rose-400">${nombresMaterias[indexPeorMat]}</strong> (Métrica: ${promediosMaterias[indexPeorMat]} pts).`;
+            let c4 = avgZona >= 40 
+                ? `Eficiencia de entrega de Zona <strong>Óptima</strong> (${avgZona}/50). Este módulo protege tu score global significativamente.`
+                : `Déficit detectado en cumplimiento de Zona. Se están perdiendo datos críticos (50% del peso final).`;
+            let c5 = avgAsist >= 8 
+                ? `Registro de presencia en terminal <strong>estable</strong> (${avgAsist}/10). Módulo de captación activo.`
+                : `<strong>Alerta Crítica:</strong> Inasistencia reiterada. Las ausencias bloquean el 10% del puntaje y rompen la cadena de datos de aprendizaje.`;
+            let c6 = analisis.materiasRiesgo.size > 0 
+                ? `Se detectan <strong class="text-rose-400">${analisis.materiasRiesgo.size} módulo(s) en estado crítico</strong>. Acción correctiva requerida inmediatamente.`
+                : `Estado del sistema: <strong>Seguro</strong>. Ningún módulo presenta riesgo de fallo actualmente.`;
+            let c7 = `La IA del sistema KRONOS sugiere continuar el análisis de los gráficos inferiores para optimizar rutas de aprendizaje.`;
+
+            // === AQUI HACEMOS EL CAMBIO PARA EL EFECTO DE IA ===
+            // En lugar de pintarlos inmediatamente, los guardamos y reseteamos el contenedor
+            window.textosIAGenerados = [c1, c2, c3, c4, c5, c6, c7];
+            
+            // Restablecer el botón si se vuelve a recargar datos
+            const btnIa = document.getElementById('btn-ia-kronos');
+            if (btnIa) {
+                btnIa.disabled = false;
+                btnIa.innerHTML = '<i class="fa-solid fa-bolt"></i> Analizar Estudiante';
+                btnIa.classList.remove('opacity-50', 'cursor-not-allowed', 'text-brand');
+            }
+
+            // Poner el "Estado de Espera"
+            document.getElementById('comentarios-cualitativos').innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center text-brand-dark/50 py-8 opacity-70">
+                    <i class="fa-solid fa-robot text-4xl mb-3 animate-pulse"></i>
+                    <p class="text-xs font-display tracking-widest uppercase text-gray-400 mb-1">Motor de IA en espera</p>
+                    <p class="text-[10px] text-gray-500">Presiona "Analizar Estudiante" para inicializar las rutinas de KRONOS.</p>
+                </div>
+            `;
+        }
+        
+        // =====================================================================
+        // FUNCIONES NUEVAS: Efecto Máquina de Escribir para el Log de IA
+        // =====================================================================
+        
+        function iniciarAnalisisIA() {
+            const btn = document.getElementById('btn-ia-kronos');
+            if (!btn || btn.disabled) return;
+            
+            // Bloqueamos el botón y cambiamos estado
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'text-brand-light');
+            
+            const contenedor = document.getElementById('comentarios-cualitativos');
+            contenedor.innerHTML = ''; // Limpiamos el texto de "Espera"
+            
+            const textos = window.textosIAGenerados || [];
+            let indexParrafo = 0;
+            
+            function typeNextParrafo() {
+                if (indexParrafo >= textos.length) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Análisis Finalizado';
+                    btn.classList.replace('text-brand-light', 'text-brand');
+                    return;
+                }
+                
+                // Creamos el contenedor del ítem (el div con la bolita lateral)
+                const divContenedor = document.createElement('div');
+                divContenedor.className = 'ai-comment-item mb-4 opacity-0 transition-opacity duration-300';
+                
+                // El párrafo interior donde se escribirá el texto
+                const pDestino = document.createElement('p');
+                pDestino.className = 'text-gray-300 font-medium';
+                
+                divContenedor.appendChild(pDestino);
+                contenedor.appendChild(divContenedor);
+                
+                // Hacemos aparecer el bullet point
+                setTimeout(() => divContenedor.classList.remove('opacity-0'), 50);
+                
+                // Llamamos a la función mágica que escribe el HTML poco a poco
+                typeWriterHTML(pDestino, textos[indexParrafo], 0, () => {
+                    indexParrafo++;
+                    setTimeout(typeNextParrafo, 300); // Pausa corta entre párrafos
+                });
+            }
+            
+            typeNextParrafo();
+        }
+
+        // Función que escribe un string que contiene HTML carácter por carácter 
+        // y respeta los tags (como <strong> o <span class="...">)
+        function typeWriterHTML(elemento, stringHTML, charIndex, callback) {
+            if (charIndex < stringHTML.length) {
+                // Si encontramos la apertura de una etiqueta, saltamos al final de la misma
+                if (stringHTML.charAt(charIndex) === '<') {
+                    let finEtiqueta = stringHTML.indexOf('>', charIndex);
+                    if (finEtiqueta !== -1) {
+                        charIndex = finEtiqueta + 1;
+                    }
+                }
+                
+                // Insertamos lo que llevamos + el cursor parpadeante
+                elemento.innerHTML = stringHTML.substring(0, charIndex) + '<span class="cursor-blink bg-brand-light opacity-80 text-brand-light ml-1 h-3 inline-block">_</span>';
+                
+                // Hacemos que la velocidad sea un poco aleatoria para sentirse "orgánico/máquina real"
+                let velocidad = Math.random() * 15 + 10; 
+                
+                setTimeout(() => typeWriterHTML(elemento, stringHTML, charIndex + 1, callback), velocidad);
+            } else {
+                // Terminó de escribir este párrafo, cerramos limpio el HTML original
+                elemento.innerHTML = stringHTML; 
+                if (callback) callback();
+            }
+        }
+    </script>
+</body>
+</html>

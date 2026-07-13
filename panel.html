@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONOS | OS Gerencial Avanzado</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            /* Paleta de colores Premium Oscura - Optimizada para mayor contraste */
+            --bg-base: #050811; /* Fondo principal más profundo */
+            --bg-surface: rgba(13, 18, 30, 0.5); /* Tarjetas con mayor transparencia */
+            --bg-surface-hover: rgba(20, 28, 45, 0.8);
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-highlight: rgba(0, 243, 255, 0.25);
+            
+            --text-pure: #ffffff;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --accent-cyan: #00f3ff;
+            --accent-teal: #00e0b0;
+            --accent-purple: #9d00ff;
+            
+            --grad-primary: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
+            --grad-tech: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-cyan) 100%);
+            
+            --shadow-premium: 0 10px 40px -10px rgba(0,0,0,0.5);
+            --transition-smooth: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-pure);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .ambient-background {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(0, 243, 255, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(157, 0, 255, 0.03) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ambient-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: 0;
+            pointer-events: none;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(5, 8, 17, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .brand-zone {
+            padding: 35px 25px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Reemplazo profesional del logo kron.png por un SVG generado */
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--border-highlight);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+        }
+
+        .brand-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--accent-cyan);
+        }
+
+        .brand-zone h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 25px 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 20px 0 10px 15px;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            opacity: 0.7;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-link:hover {
+            color: var(--text-pure);
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-subtle);
+        }
+
+        .nav-link.active {
+            color: var(--accent-cyan);
+            background: rgba(0, 243, 255, 0.08);
+            border-color: rgba(0, 243, 255, 0.15);
+            box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.05);
+        }
+
+        .nav-link.active svg {
+            opacity: 1;
+            filter: drop-shadow(0 0 5px var(--accent-cyan));
+        }
+
+        .main-view {
+            flex-grow: 1;
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .main-view::-webkit-scrollbar { width: 6px; }
+        .main-view::-webkit-scrollbar-track { background: transparent; }
+        .main-view::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .main-view::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.3); }
+
+        .top-bar {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(5, 8, 17, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .path-indicator {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .path-indicator strong {
+            color: var(--text-pure);
+            font-weight: 500;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(0, 224, 176, 0.05);
+            border: 1px solid rgba(0, 224, 176, 0.2);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent-teal);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 224, 176, 0.05);
+        }
+
+        .pulse-dot {
+            width: 6px; height: 6px;
+            background-color: var(--accent-teal);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-teal);
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .view-container {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            display: none;
+            animation: fadeView 0.4s ease forwards;
+        }
+
+        .view-container.active { display: block; }
+
+        @keyframes fadeView {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-header h2 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: var(--text-pure);
+            letter-spacing: -0.5px;
+        }
+
+        .page-header h2 b {
+            font-weight: 700;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            max-width: 700px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        /* DISEÑO BASE DE LA TARJETA - Completamente CSS, sin requerir JS */
+        .module-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Efecto de brillo puro CSS al hacer hover (reemplaza al antiguo JS) */
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.1), transparent 70%);
+            opacity: 0;
+            transition: var(--transition-smooth);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            background: var(--bg-surface-hover);
+            border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: var(--shadow-premium), inset 0 0 20px rgba(0, 243, 255, 0.05);
+        }
+
+        .module-card:hover::before { opacity: 1; }
+
+        /* Estructura Interna de la Tarjeta */
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 25px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card-icon {
+            width: 48px; height: 48px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+            flex-shrink: 0;
+        }
+
+        .card-icon svg {
+            width: 22px; height: 22px;
+            fill: var(--text-pure);
+            transition: var(--transition-smooth);
+        }
+
+        .card-info { flex-grow: 1; }
+
+        .card-info h3 {
+            font-size: 1.25rem;
+            color: var(--text-pure);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .card-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .module-card:hover .card-icon {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.2);
+        }
+        
+        .module-card:hover .card-icon svg { fill: var(--accent-cyan); }
+
+        /* Contenedor Visual (Canvas o Imágenes) */
+        .card-visuals {
+            height: 140px;
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.02);
+            z-index: 2;
+        }
+
+        .card-visuals canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Pie de la tarjeta: Métricas y Botón */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 2;
+            position: relative;
+            margin-top: auto;
+        }
+
+        .metric-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+
+        .card-action {
+            color: var(--text-pure);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.6;
+            transition: var(--transition-smooth);
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+        }
+
+        .card-action svg {
+            width: 16px; height: 16px;
+            fill: currentColor;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .module-card:hover .card-action {
+            opacity: 1;
+            color: var(--bg-base);
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .module-card:hover .card-action svg {
+            transform: translateX(3px);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 30px;
+            transition: var(--transition-smooth);
+        }
+        
+        .tech-card:hover {
+            border-color: rgba(157, 0, 255, 0.3);
+            background: rgba(157, 0, 255, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .tech-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tech-icon {
+            font-size: 1.8rem;
+            background: var(--grad-tech);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tech-card h4 { font-size: 1.1rem; color: var(--text-pure); }
+        .tech-list { list-style: none; }
+        .tech-list li {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.4;
+        }
+        .tech-list li::before {
+            content: '›';
+            color: var(--accent-purple);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .team-member {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 35px 20px;
+            text-align: center;
+            transition: var(--transition-smooth);
+        }
+
+        .team-member:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--accent-teal);
+            transform: translateY(-3px);
+        }
+
+        .avatar {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: rgba(0, 224, 176, 0.1);
+            margin: 0 auto 20px;
+            border: 1px solid rgba(0, 224, 176, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+        }
+
+        .team-member h4 { color: var(--text-pure); font-size: 1.1rem; margin-bottom: 6px; }
+        .team-member p { color: var(--accent-teal); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
+
+        .mobile-menu-btn {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-pure);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .mobile-menu-btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                transition: left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            .sidebar.open { left: 0; box-shadow: var(--shadow-premium); }
+            .mobile-menu-btn { display: block; }
+            .top-bar { padding: 15px 20px; gap: 15px; }
+            .page-header h2 { font-size: 1.8rem; }
+            .grid-layout { grid-template-columns: 1fr; }
+            .view-container { padding: 20px; }
+            .card-header { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-background"></div>
+    <div class="ambient-grid"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="brand-zone">
+            <!-- Logo Vectorial Reemplazando kron.png -->
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <h1>KRONOS</h1>
+        </div>
+        
+        <ul class="nav-list">
+            <div class="nav-label">General</div>
+            <li class="nav-item">
+                <a onclick="switchView('dashboard', this)" class="nav-link active" data-title="Dashboard General">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Panel de Control
+                </a>
+            </li>
+            
+            <div class="nav-label">Ecosistema</div>
+            <li class="nav-item">
+                <a onclick="switchView('tecnologias', this)" class="nav-link" data-title="Stack Tecnológico">
+                    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                    Tecnologías
+                </a>
+            </li>
+            <li class="nav-item">
+                <a onclick="switchView('equipo', this)" class="nav-link" data-title="Nuestro Equipo">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Nuestro Equipo
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-view">
+        <header class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleMenu()">
+                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            </button>
+            <div class="path-indicator">
+                Kronos OS / <strong id="current-path">Dashboard General</strong>
+            </div>
+            <div class="system-status">
+                <div class="pulse-dot"></div>
+                SISTEMA EN LÍNEA
+            </div>
+        </header>
+
+        <div id="dashboard" class="view-container active">
+            <div class="page-header">
+                <h2>Centro de Mando <b>KRONOS</b></h2>
+                <p>Suite operativa automatizada. Interactúa con los módulos para gestionar reportes, supervisar personal y configurar el núcleo de Inteligencia Artificial de la empresa.</p>
+            </div>
+
+            <div class="grid-layout">
+                
+               <!-- Módulo 1 -->
+                <a href="Proyect1.html" class="module-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                        </div>
+                        <div class="card-info">
+                            <h3>Multi Kronos</h3>
+                            <p>Automatización de PDFs mediante plantillas listas para el llenado inteligente de datos.</p>
+                        </div>
+                    </div>
+                    <div class="card-visuals">
+                        <canvas id="chart-reports"></canvas>
+                    </div>
+                    <div class="card-footer">
+                        <div class="metric-group">
+                            <span class="metric-value" style="font-size: 1.2rem; margin-bottom: 2px;">Sistema Listo</span>
+                            <span class="metric-label">Estado</span>
+                        </div>
+                        <div class="card-action">
+                            Ingresar <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Módulo 2 -->
+                <a href="Proyect2.html" class="module-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        </div>
+                        <div class="card-info">
+                            <h3>Control Kronos</h3>
+                            <p>Control seguro de pagos, evaluación de transacciones y dashboards analíticos.</p>
+                        </div>
+                    </div>
+                    <div class="card-visuals">
+                        <canvas id="chart-attendance"></canvas>
+                    </div>
+                    <div class="card-footer">
+                        <div class="metric-group">
+                            <span class="metric-value">100%</span>
+                            <span class="metric-label">Entorno Seguro</span>
+                        </div>
+                        <div class="card-action">
+                            Ingresar <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        </div>
+                    </div>
+                </a>
+
+               <!-- Módulo 3 -->
+                <a href="Proyect4.html" class="module-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <!-- Ícono actualizado a representación de personal/equipo -->
+                            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        </div>
+                        <div class="card-info">
+                            <h3>KRONOS IA</h3>
+                            <p>Análisis avanzado para evaluar el rendimiento y desempeño del personal basándose en datos reales.</p>
+                        </div>
+                    </div>
+                    <div class="card-visuals">
+                        <canvas id="chart-ai"></canvas>
+                    </div>
+                    <div class="card-footer">
+                        <div class="metric-group">
+                            <span class="metric-value" style="color: var(--accent-teal);">En vivo</span>
+                            <span class="metric-label">Análisis de Datos</span>
+                        </div>
+                        <div class="card-action">
+                            Ingresar <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Módulo 4 -->
+                <a href="Proyect3.html" class="module-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <!-- Ícono de Calendario / Reporte -->
+                            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>
+                        </div>
+                        <div class="card-info">
+                            <h3>Control de Asistencias</h3>
+                            <p>Analiza el rendimiento del personal, visualiza estadísticas de inasistencias y registra las faltas por día en cada mes.</p>
+                        </div>
+                    </div>
+                    <div class="card-visuals">
+                        <!-- Animación de Calendario interactiva integrada -->
+                        <style>
+                            .calendar-animation {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                width: 100%;
+                                height: 100%;
+                                box-sizing: border-box;
+                            }
+                            .cal-header-anim {
+                                width: 75%;
+                                height: 4px;
+                                background: rgba(255, 255, 255, 0.4);
+                                border-radius: 2px;
+                                margin-bottom: 10px;
+                            }
+                            .cal-grid-anim {
+                                display: grid;
+                                grid-template-columns: repeat(7, 1fr);
+                                gap: 6px;
+                                width: 75%;
+                            }
+                            .cal-day-anim {
+                                width: 100%;
+                                padding-bottom: 100%; /* Hace que sean cuadrados perfectos */
+                                background: rgba(255, 255, 255, 0.15);
+                                border-radius: 2px;
+                                animation: pulse-day 2s infinite alternate ease-in-out;
+                            }
+                            /* Días simulando faltas (rojo intermitente) */
+                            .cal-day-anim.absence {
+                                background: #ff4d4d;
+                                animation: blink-absence 1.5s infinite;
+                            }
+                            /* Días simulando asistencia perfecta (resaltado) */
+                            .cal-day-anim.present {
+                                background: #00d2ff;
+                                opacity: 0.8;
+                                animation: none;
+                            }
+                            /* Retrasos en la animación para efecto en cascada */
+                            .cal-day-anim:nth-child(2n) { animation-delay: 0.4s; }
+                            .cal-day-anim:nth-child(3n) { animation-delay: 0.8s; }
+                            .cal-day-anim:nth-child(5n) { animation-delay: 1.2s; }
+
+                            @keyframes pulse-day {
+                                0% { opacity: 0.3; transform: scale(0.9); }
+                                100% { opacity: 0.8; transform: scale(1.05); }
+                            }
+                            @keyframes blink-absence {
+                                0% { opacity: 0.4; box-shadow: 0 0 0 transparent; }
+                                50% { opacity: 1; box-shadow: 0 0 6px #ff4d4d; }
+                                100% { opacity: 0.4; box-shadow: 0 0 0 transparent; }
+                            }
+                        </style>
+                        <div class="calendar-animation">
+                            <div class="cal-header-anim"></div>
+                            <div class="cal-grid-anim">
+                                <!-- Semana 1 -->
+                                <div class="cal-day-anim present"></div>
+                                <div class="cal-day-anim present"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim absence"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim"></div>
+                                <!-- Semana 2 -->
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim present"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim absence"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim present"></div>
+                                <!-- Semana 3 -->
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim present"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim"></div>
+                                <div class="cal-day-anim absence"></div>
+                                <div class="cal-day-anim"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="metric-group">
+                            <span class="metric-value" style="font-size: 1.2rem; color: #00d2ff;">Métricas</span>
+                            <span class="metric-label">Reporte Mensual</span>
+                        </div>
+                        <div class="card-action">
+                            Ingresar <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <div id="tecnologias" class="view-container">
+            <div class="page-header">
+                <h2>Stack <b>Tecnológico</b></h2>
+                <p>Infraestructura base del sistema KRONOS. Potenciado por tecnologías escalables y lenguajes de alto rendimiento para garantizar automatización logística sin interrupciones.</p>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-header">
+                        <div class="tech-icon">{JS}</div>
+                        <h4>Full JavaScript & Node.js</h4>
+                    </div>
+                    <ul class="tech-list">
+                        <li>Entorno de ejecución asíncrono</li>
+                        <li>Logística de backend en Node.js</li>
+                        <li>Motor V8 para alto rendimiento</li>
+                        <li>Gestión nativa de paquetes (NPM)</li>
+                    </ul>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-header">
+                        <div class="tech-icon">&lt;/&gt;</div>
+                        <h4>APIs & Google Workspace</h4>
+                    </div>
+                    <ul class="tech-list">
+                        <li>Integración de múltiples APIs RESTful</li>
+                        <li>Google Hojas de Cálculo (Sheets API)</li>
+                        <li>Sincronización bidireccional de bases de datos</li>
+                        <li>Autenticación segura por tokens</li>
+                    </ul>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-header">
+                        <div class="tech-icon">⚙️</div>
+                        <h4>Google Apps Script (GAS)</h4>
+                    </div>
+                    <ul class="tech-list">
+                        <li>Activadores (Triggers) basados en tiempo</li>
+                        <li>Automatización de flujos de trabajo</li>
+                        <li>Try/Catch avanzado en procesos críticos</li>
+                        <li>Macros y funciones personalizadas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+       <div id="equipo" class="view-container">
+    <div class="page-header">
+        <h2>Nuestro <b>Equipo</b></h2>
+        <p>Somos estudiantes de Administración de Empresas, desarrolladores y arquitectos del ecosistema KRONOS.</p>
+    </div>
+
+    <div class="team-grid">
+        <!-- DANIEL -->
+        <div class="team-member">
+            <div class="avatar">D</div>
+            <h4>Daniel Alexander Flores Sol</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Arquitectura y Lógica Central</p>
+            <p style="color: #ffffff;">Perfil analítico y líder influyente. Estructuró la mayoría de las operaciones del equipo y fungió como pilar técnico para el backend y la conectividad Python-MySQL.</p>
+        </div>
+
+        <!-- JAMES -->
+        <div class="team-member">
+            <div class="avatar">J</div>
+            <h4>James Alexander García Samayoa</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Desarrollo de Interfaz y Logística</p>
+            <p style="color: #ffffff;">Organizador estratégico. Responsable de traducir la lógica técnica en interfaces operativas y funcionales para el usuario.</p>
+        </div>
+
+        <!-- MARCOS -->
+        <div class="team-member">
+            <div class="avatar">M</div>
+            <h4>Marcos Danyel García Blanco</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Desarrollo de Interfaz y Logística</p>
+            <p style="color: #ffffff;">Especialista técnico-visual. Enfocado en la programación de plantillas multimedia y en la unificación de una identidad estética coherente.</p>
+        </div>
+
+        <!-- GERALD -->
+        <div class="team-member">
+            <div class="avatar">G</div>
+            <h4>Gerald Servando López Carrera</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Diseño Creativo y Aplicación</p>
+            <p style="color: #ffffff;">Mente creativa del equipo. A cargo de la ejecución visual de los layouts y de garantizar la correcta aplicación de la paleta de colores.</p>
+        </div>
+
+        <!-- MYA -->
+        <div class="team-member">
+            <div class="avatar">M</div>
+            <h4>Mya Alice Noemi Sazo Marroquín</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Diseño Creativo y Aplicación</p>
+            <p style="color: #ffffff;">Perfil detallista y estético. Dedicada a la maquetación e implementación final de las plantillas para asegurar un diseño pulcro y profesional.</p>
+        </div>
+
+        <!-- MARÍA DEL PILAR -->
+        <div class="team-member">
+            <div class="avatar">M</div>
+            <h4>María del Pilar De León Chután</h4>
+            <p style="color: #00e5ff; font-weight: bold;">Diseño Creativo y Aplicación</p>
+            <p style="color: #ffffff;">Supervisora de armonía visual. Encargada de integrar los elementos gráficos para mantener los estándares corporativos del sistema.</p>
+        </div>
+    </div>
+</div>
+    </main>
+
+    <script>
+        // Funcionalidad de Menú Móvil
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Sistema de Navegación (SPA)
+        function switchView(viewId, element) {
+            if(window.innerWidth <= 1024) toggleMenu(); 
+            
+            document.querySelectorAll('.view-container').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            document.getElementById(viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            element.classList.add('active');
+            document.getElementById('current-path').innerText = element.getAttribute('data-title');
+
+            // Lanzar evento resize para re-ajustar los Canvas si estaban ocultos
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // Sistema de Gráficos (Canvas) Optimizado
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            function setupCanvas(id) {
+                const canvas = document.getElementById(id);
+                if (!canvas) return null;
+                const ctx = canvas.getContext('2d');
+                
+                const resize = () => {
+                    const parent = canvas.parentElement;
+                    canvas.width = parent.clientWidth;
+                    canvas.height = parent.clientHeight;
+                };
+                window.addEventListener('resize', resize);
+                setTimeout(resize, 100); 
+                return { canvas, ctx };
+            }
+
+            // --- ANIMACIÓN 1: REPORTES ---
+            const g1 = setupCanvas('chart-reports');
+            if(g1){
+                let { canvas: c1, ctx: ctx1 } = g1;
+                let lines = [];
+                let docHeight = 0;
+                let isWriting = true;
+                
+                function initDoc() {
+                    lines = [];
+                    docHeight = 20;
+                    isWriting = true;
+                }
+                
+                function drawReportsChart() {
+                    if (c1.width > 0) {
+                        ctx1.clearRect(0, 0, c1.width, c1.height);
+                        
+                        const pW = c1.width * 0.6;
+                        const pH = c1.height * 0.8;
+                        const pX = (c1.width - pW) / 2;
+                        const pY = (c1.height - pH) / 2;
+                        
+                        ctx1.shadowColor = 'rgba(0, 243, 255, 0.1)';
+                        ctx1.shadowBlur = 15;
+                        ctx1.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx1.beginPath();
+                        ctx1.roundRect(pX, pY, pW, pH, 6);
+                        ctx1.fill();
+                        ctx1.shadowBlur = 0;
+
+                        ctx1.fillStyle = '#00f3ff';
+                        ctx1.fillRect(pX + 15, pY + 15, 25, 4);
+                        ctx1.fillStyle = '#cbd5e1';
+                        ctx1.fillRect(pX + 45, pY + 15, pW - 60, 4);
+
+                        if (isWriting) {
+                            if (Math.random() > 0.85 && docHeight < pH - 35) {
+                                const lineWidth = Math.random() * (pW - 50) + 20;
+                                lines.push({ x: pX + 15, y: pY + 28 + docHeight, w: 0, targetW: lineWidth });
+                                docHeight += 12; 
+                            }
+                            if (docHeight >= pH - 35) {
+                                isWriting = false; 
+                                setTimeout(initDoc, 2000); 
+                            }
+                        }
+
+                        lines.forEach(line => {
+                            line.w += (line.targetW - line.w) * 0.2; 
+                            ctx1.fillStyle = '#94a3b8';
+                            ctx1.fillRect(line.x, line.y, line.w, 4);
+                        });
+                    }
+                    requestAnimationFrame(drawReportsChart);
+                }
+                drawReportsChart();
+            }
+
+            // --- ANIMACIÓN 2: ASISTENCIA ---
+            const g2 = setupCanvas('chart-attendance');
+            if(g2){
+                let { canvas: c2, ctx: ctx2 } = g2;
+                const bars = Array.from({length: 12}, () => ({
+                    height: 20,
+                    target: Math.random() * 80 + 20,
+                    speed: Math.random() * 0.05 + 0.02
+                }));
+
+                function drawAttendanceChart() {
+                    if (c2.width > 0) {
+                        ctx2.clearRect(0, 0, c2.width, c2.height);
+                        const barWidth = c2.width / bars.length - 4;
+                        
+                        bars.forEach((bar, i) => {
+                            bar.height += (bar.target - bar.height) * bar.speed;
+                            if (Math.abs(bar.height - bar.target) < 1) bar.target = Math.random() * 80 + 20; 
+
+                            const pxHeight = (bar.height / 100) * (c2.height - 20);
+                            const x = i * (barWidth + 4) + 2;
+                            const y = c2.height - pxHeight;
+
+                            ctx2.fillStyle = 'rgba(0, 224, 176, 0.05)';
+                            ctx2.fillRect(x, 0, barWidth, c2.height);
+
+                            let grad = ctx2.createLinearGradient(0, y, 0, c2.height);
+                            grad.addColorStop(0, '#00e0b0');
+                            grad.addColorStop(1, 'rgba(0, 224, 176, 0.1)');
+                            ctx2.fillStyle = grad;
+                            
+                            ctx2.beginPath();
+                            ctx2.roundRect(x, y, barWidth, pxHeight, [4, 4, 0, 0]);
+                            ctx2.fill();
+                        });
+                    }
+                    requestAnimationFrame(drawAttendanceChart);
+                }
+                drawAttendanceChart();
+            }
+
+            // --- ANIMACIÓN 3: CHATBOT IA ---
+            const g3 = setupCanvas('chart-ai');
+            if(g3){
+                let { canvas: c3, ctx: ctx3 } = g3;
+                let particles = [];
+
+                function initParticles() {
+                    particles = Array.from({length: 25}, () => ({
+                        x: Math.random() * c3.width,
+                        y: Math.random() * c3.height,
+                        vx: (Math.random() - 0.5) * 1.2,
+                        vy: (Math.random() - 0.5) * 1.2
+                    }));
+                }
+                setTimeout(initParticles, 150);
+
+                function drawAIChart() {
+                    if (c3.width > 0 && particles.length > 0) {
+                        ctx3.clearRect(0, 0, c3.width, c3.height);
+                        
+                        particles.forEach(p => {
+                            p.x += p.vx;
+                            p.y += p.vy;
+                            if (p.x < 0 || p.x > c3.width) p.vx *= -1;
+                            if (p.y < 0 || p.y > c3.height) p.vy *= -1;
+                        });
+
+                        for (let i = 0; i < particles.length; i++) {
+                            for (let j = i + 1; j < particles.length; j++) {
+                                const dx = particles[i].x - particles[j].x;
+                                const dy = particles[i].y - particles[j].y;
+                                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                                if (dist < 60) {
+                                    ctx3.beginPath();
+                                    ctx3.moveTo(particles[i].x, particles[i].y);
+                                    ctx3.lineTo(particles[j].x, particles[j].y);
+                                    ctx3.strokeStyle = `rgba(0, 243, 255, ${0.6 - dist/60})`;
+                                    ctx3.lineWidth = 1;
+                                    ctx3.stroke();
+                                }
+                            }
+                        }
+
+                        particles.forEach(p => {
+                            ctx3.beginPath();
+                            ctx3.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                            ctx3.fillStyle = '#ffffff';
+                            ctx3.fill();
+                            ctx3.shadowBlur = 8;
+                            ctx3.shadowColor = '#00f3ff';
+                        });
+                        ctx3.shadowBlur = 0;
+                    }
+                    requestAnimationFrame(drawAIChart);
+                }
+                drawAIChart();
+            }
+        });
+    </script>
+</body>
+</html>

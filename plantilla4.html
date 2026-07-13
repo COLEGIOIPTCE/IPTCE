@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTCE - Ficha Médica y de Emergencia</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Librerías para generación de PDF y Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Google Fonts: Inter (UI) y Playfair Display (Documento Formal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darknavy: '#050a15', 
+                        gold: '#d4af37',
+                        bloodred: '#dc2626', /* Color para alertas médicas */
+                        panelbg: '#f8fafc',
+                        subtle: '#64748b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 10px 40px -10px rgba(5, 10, 21, 0.08)',
+                        'paper': '0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        /* Scrollbar estilizado */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Estilos de Formulario Premium */
+        .premium-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.5rem;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            color: #0f172a;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .premium-input:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+        }
+        .premium-input.alert-input:focus {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+        }
+        .premium-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Contenedor de la hoja realista (Tamaño Carta Exacto) */
+        .paper-container {
+            width: 100%;
+            max-width: 816px; /* 8.5 pulgadas a 96dpi */
+            aspect-ratio: 8.5 / 11;
+            background-color: #ffffff;
+            margin: 0 auto;
+            position: relative;
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(250,250,250,1) 100%);
+        }
+
+        /* Utilidad para inputs de archivo */
+        .custom-file-upload {
+            display: inline-block;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans text-gray-800 antialiased overflow-hidden">
+
+    <header class="bg-darknavy border-b-[3px] border-gold py-4 px-6 md:px-8 shadow-xl flex items-center justify-between z-50 shrink-0">
+        <div class="flex items-center gap-5">
+            <!-- Logo con manejo inteligente de errores -->
+            <img src="log.png" alt="Logo IPTCE" class="h-12 w-auto object-contain brightness-0 invert filter drop-shadow-md" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEwdi0uNjdhMi4xMiAyLjEyIDAgMCAwLTEuNS0yLjAxTDEyIDIuNjZMMi41IDcuMzJhMi4xMiAyLjEyIDAgMCAwLTEuNSAyLjAxVjEwbTAgNHYyLjY3YTIuMTIgMi4xMiAwIDAgMCAxLjUgMi4wMWw4IDMuMTZhMi4xMiAyLjEyIDAgMCAwIDEuNS0yLjAxVjE0bS0zIDR2Mm0tNi0ydjJtMTItMTMuODhWMjhIMnoiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIi8+PC9zdmc+'">
+            <div class="hidden sm:block border-l border-gray-700 pl-5">
+                <h1 class="text-white text-xl font-serif font-bold tracking-wider">COLEGIO IPTCE</h1>
+                <p class="text-gold text-[0.65rem] font-bold uppercase tracking-[0.2em] mt-0.5">Control Médico Estudiantil</p>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="window.location.href='Proyect1.html'" class="text-gray-400 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-md hover:bg-white/10">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Panel Principal
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col lg:flex-row h-[calc(100vh-83px)]">
+        
+        <section class="w-full lg:w-[400px] xl:w-[450px] bg-panelbg shadow-[10px_0_30px_rgba(5,10,21,0.05)] z-40 flex flex-col h-full border-r border-gray-200 shrink-0">
+            
+            <div class="p-6 bg-white border-b border-gray-100 flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 bg-darknavy text-gold rounded-lg flex items-center justify-center shadow-md">
+                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-darknavy">Datos Clínicos</h2>
+                    <p class="text-xs text-subtle font-medium">Complete la ficha de emergencia</p>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow custom-scrollbar">
+                <form id="medical-form" class="space-y-6">
+                    
+                    <!-- Sección: Estudiante -->
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">1. Identificación</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="relative group">
+                                <label class="premium-label">Nombre del Alumno</label>
+                                <div class="relative">
+                                    <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                                    <input type="text" id="in-name" class="premium-input" placeholder="Nombre completo">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="relative group">
+                                    <label class="premium-label">Grado / Sección</label>
+                                    <div class="relative">
+                                        <input type="text" id="in-grade" class="premium-input pl-3" placeholder="Ej. 5to Bachillerato A">
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <label class="premium-label">Tipo de Sangre</label>
+                                    <div class="relative">
+                                        <select id="in-blood" class="premium-input pl-3 cursor-pointer appearance-none font-bold text-darknavy">
+                                            <option value="" disabled selected>Seleccione...</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                        </select>
+                                        <i data-lucide="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Médica -->
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">2. Cuadro Clínico</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="relative group">
+                                <label class="premium-label text-bloodred">Alergias Conocidas (Crítico)</label>
+                                <div class="relative">
+                                    <i data-lucide="alert-triangle" class="absolute left-3 top-4 text-gray-400 w-4 h-4 group-focus-within:text-bloodred transition-colors"></i>
+                                    <textarea id="in-allergies" rows="2" class="premium-input alert-input resize-none" placeholder="Medicamentos, alimentos, insectos... (Dejar en blanco si no tiene)"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="relative group">
+                                <label class="premium-label">Condiciones / Medicación</label>
+                                <div class="relative">
+                                    <i data-lucide="pill" class="absolute left-3 top-4 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                                    <textarea id="in-conditions" rows="2" class="premium-input resize-none" placeholder="Asma, diabetes, medicamentos diarios..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Emergencia -->
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">3. Protocolo de Emergencia</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <label class="premium-label text-darknavy">Contacto Principal</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="in-c1-name" class="premium-input pl-3 py-2 text-sm" placeholder="Nombre y Parentesco">
+                                    <div class="relative">
+                                        <i data-lucide="phone" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3"></i>
+                                        <input type="tel" id="in-c1-phone" class="premium-input py-2 text-sm" placeholder="Número de Teléfono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <label class="premium-label text-darknavy">Contacto Secundario</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="in-c2-name" class="premium-input pl-3 py-2 text-sm" placeholder="Nombre y Parentesco">
+                                    <div class="relative">
+                                        <i data-lucide="phone" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3"></i>
+                                        <input type="tel" id="in-c2-phone" class="premium-input py-2 text-sm" placeholder="Número de Teléfono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="relative group">
+                                <label class="premium-label">Seguro Médico / Hospital</label>
+                                <div class="relative">
+                                    <i data-lucide="building" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                                    <input type="text" id="in-insurance" class="premium-input" placeholder="Aseguradora o centro de preferencia">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-5 border-t border-gray-200 bg-white grid gap-3 shrink-0">
+                <button id="btn-download-pdf" class="w-full bg-darknavy hover:bg-black text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex justify-center items-center gap-2 group">
+                    <i data-lucide="file-check-2" class="w-5 h-5 group-hover:scale-110 transition-transform text-gold"></i>
+                    Generar Ficha Oficial (PDF)
+                </button>
+                <button id="btn-download-img" class="w-full bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium py-2.5 px-4 rounded-lg transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="image" class="w-4 h-4 text-gray-500"></i>
+                    Exportar Borrador (PNG)
+                </button>
+            </div>
+        </section>
+
+        <!-- PANEL DERECHO: VISTA PREVIA (DOCUMENTO) -->
+        <section class="flex-grow overflow-y-auto p-4 sm:p-10 flex justify-center items-start custom-scrollbar">
+            
+            <!-- Lienzo tamaño carta exacto -->
+            <div id="preview-container" class="paper-container shadow-paper p-[8%] flex flex-col text-[#1e293b]">
+                
+                <!-- Bordes perimetrales elegantes -->
+                <div class="absolute inset-[10px] border border-gray-100 pointer-events-none"></div>
+                <div class="absolute inset-[15px] border border-gray-200/50 pointer-events-none"></div>
+
+                <!-- ENCABEZADO FORMAL -->
+                <div class="flex items-center justify-between mb-6 border-b-2 border-darknavy pb-4 relative z-10">
+                    <div class="w-[80px] h-[80px] flex-shrink-0">
+                        <img id="preview-sello-img" src="SELLO.png" alt="Sello" class="w-full h-full object-contain filter grayscale opacity-90" onerror="this.style.display='none'">
+                    </div>
+                    
+                    <div class="text-right flex-grow pl-4">
+                        <h2 class="font-serif text-3xl font-bold text-darknavy tracking-wide">COLEGIO IPTCE</h2>
+                        <p class="text-gray-600 font-serif text-[0.65rem] sm:text-xs tracking-[0.15em] uppercase mt-1">Instituto Profesional de Técnicas Comerciales Especializadas</p>
+                        <div class="mt-3 inline-block bg-darknavy text-white px-4 py-1.5 font-bold text-xs tracking-widest uppercase">
+                            FICHA MÉDICA Y DE EMERGENCIA
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUERPO DEL DOCUMENTO -->
+                <div class="flex-grow relative z-10 flex flex-col gap-6">
+                    
+                    <!-- 1. Datos del Estudiante -->
+                    <div>
+                        <h3 class="font-serif text-darknavy font-bold uppercase tracking-wider text-xs mb-2 border-b border-gray-300 pb-1">1. Identificación del Estudiante</h3>
+                        <div class="border border-gray-300 p-4 bg-white grid grid-cols-4 gap-4">
+                            <div class="col-span-4 sm:col-span-2">
+                                <span class="text-[0.65rem] text-gray-500 uppercase font-bold tracking-wider block mb-1">Nombre Completo</span>
+                                <span id="out-name" class="font-serif font-bold text-lg text-darknavy block border-b border-dashed border-gray-300 pb-1 min-h-[28px]">[Nombre del Alumno]</span>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <span class="text-[0.65rem] text-gray-500 uppercase font-bold tracking-wider block mb-1">Grado / Sección</span>
+                                <span id="out-grade" class="font-medium text-gray-900 block border-b border-dashed border-gray-300 pb-1 min-h-[28px]">-</span>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1 border-l-2 border-darknavy pl-4 flex flex-col justify-center items-center bg-gray-50 -my-4 py-4">
+                                <span class="text-[0.65rem] text-darknavy uppercase font-bold tracking-wider block mb-1 text-center">Tipo de Sangre</span>
+                                <span id="out-blood" class="font-bold text-2xl text-bloodred block">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Información Médica -->
+                    <div>
+                        <h3 class="font-serif text-darknavy font-bold uppercase tracking-wider text-xs mb-2 border-b border-gray-300 pb-1">2. Cuadro Clínico y Alergias</h3>
+                        <div class="border border-gray-300 grid grid-cols-1 divide-y divide-gray-300">
+                            <!-- Alergias (Destacado) -->
+                            <div class="p-4 bg-red-50/30 flex gap-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-bloodred mt-0.5 shrink-0"></i>
+                                <div class="w-full">
+                                    <span class="text-[0.65rem] text-bloodred uppercase font-bold tracking-wider block mb-1">Alergias Conocidas (Crítico)</span>
+                                    <span id="out-allergies" class="font-bold text-bloodred text-sm block min-h-[20px] whitespace-pre-wrap">Ninguna registrada</span>
+                                </div>
+                            </div>
+                            <!-- Condiciones -->
+                            <div class="p-4 bg-white">
+                                <span class="text-[0.65rem] text-gray-500 uppercase font-bold tracking-wider block mb-1">Condiciones Médicas y Medicación Constante</span>
+                                <span id="out-conditions" class="text-gray-800 text-sm block min-h-[40px] whitespace-pre-wrap italic">Sin observaciones médicas declaradas.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Contactos de Emergencia -->
+                    <div>
+                        <h3 class="font-serif text-darknavy font-bold uppercase tracking-wider text-xs mb-2 border-b border-gray-300 pb-1">3. Protocolo de Emergencia</h3>
+                        <div class="border border-gray-300 p-0 grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-300 bg-white">
+                            <!-- Contacto 1 -->
+                            <div class="p-4">
+                                <div class="bg-darknavy text-white text-[0.60rem] px-2 py-0.5 inline-block uppercase tracking-wider font-bold mb-2 rounded-sm">Contacto Principal</div>
+                                <div class="mb-2">
+                                    <span class="text-[0.65rem] text-gray-500 uppercase font-bold block">Nombre / Parentesco</span>
+                                    <span id="out-c1-name" class="font-bold text-darknavy block min-h-[20px]">-</span>
+                                </div>
+                                <div>
+                                    <span class="text-[0.65rem] text-gray-500 uppercase font-bold block">Teléfono</span>
+                                    <span id="out-c1-phone" class="font-medium text-gray-900 block min-h-[20px]">-</span>
+                                </div>
+                            </div>
+                            <!-- Contacto 2 -->
+                            <div class="p-4 bg-gray-50/50">
+                                <div class="bg-gray-500 text-white text-[0.60rem] px-2 py-0.5 inline-block uppercase tracking-wider font-bold mb-2 rounded-sm">Contacto Alterno</div>
+                                <div class="mb-2">
+                                    <span class="text-[0.65rem] text-gray-500 uppercase font-bold block">Nombre / Parentesco</span>
+                                    <span id="out-c2-name" class="font-bold text-darknavy block min-h-[20px]">-</span>
+                                </div>
+                                <div>
+                                    <span class="text-[0.65rem] text-gray-500 uppercase font-bold block">Teléfono</span>
+                                    <span id="out-c2-phone" class="font-medium text-gray-900 block min-h-[20px]">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Seguro Médico -->
+                    <div class="border border-gray-300 p-3 bg-white flex items-center gap-3">
+                        <i data-lucide="shield-plus" class="w-5 h-5 text-gold shrink-0"></i>
+                        <div>
+                            <span class="text-[0.65rem] text-gray-500 uppercase font-bold tracking-wider block">Seguro Médico / Centro Hospitalario Preferido</span>
+                            <span id="out-insurance" class="font-bold text-darknavy text-sm block min-h-[20px]">-</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SECCIÓN DE FIRMAS Y VALIDACIÓN -->
+                <div class="mt-auto pt-10 pb-4 relative z-10 px-2 sm:px-4">
+                    <p class="text-[0.60rem] text-justify text-gray-500 mb-8 leading-tight">
+                        Declaro bajo juramento que la información médica y de contacto proporcionada en este documento es verídica y actual. Autorizo al personal administrativo y docente del Colegio IPTCE a actuar conforme a la ley en caso de emergencia médica, contactando a los números provistos o, en casos extremos, solicitando asistencia médica profesional de emergencia.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 items-end gap-10">
+                        <!-- Firma Tutor -->
+                        <div class="text-center px-4">
+                            <div class="border-t border-gray-800 w-full mb-2"></div>
+                            <p class="font-bold text-darknavy text-xs sm:text-sm uppercase tracking-wide">Firma del Responsable</p>
+                            <p class="text-[0.65rem] text-gray-500 mt-0.5">Padre, Madre o Tutor Legal</p>
+                        </div>
+
+                        <!-- Fecha de Entrega -->
+                        <div class="text-center px-4">
+                            <div class="border-t border-gray-400 w-full mb-2 border-dashed"></div>
+                            <p class="font-bold text-darknavy text-xs sm:text-sm uppercase tracking-wide">Fecha de Actualización</p>
+                            <p id="current-date" class="text-[0.65rem] text-gray-500 mt-0.5 font-serif italic"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Mapeo de inputs a outputs
+        const mappings = [
+            { in: 'in-name', out: 'out-name', default: '[Nombre del Alumno]' },
+            { in: 'in-grade', out: 'out-grade', default: '-' },
+            { in: 'in-blood', out: 'out-blood', default: '-' },
+            { in: 'in-allergies', out: 'out-allergies', default: 'Ninguna registrada' },
+            { in: 'in-conditions', out: 'out-conditions', default: 'Sin observaciones médicas declaradas.' },
+            { in: 'in-c1-name', out: 'out-c1-name', default: '-' },
+            { in: 'in-c1-phone', out: 'out-c1-phone', default: '-' },
+            { in: 'in-c2-name', out: 'out-c2-name', default: '-' },
+            { in: 'in-c2-phone', out: 'out-c2-phone', default: '-' },
+            { in: 'in-insurance', out: 'out-insurance', default: '-' }
+        ];
+
+        // Sincronización en tiempo real
+        mappings.forEach(item => {
+            const inputEl = document.getElementById(item.in);
+            const outputEl = document.getElementById(item.out);
+            
+            const updateLogic = function() {
+                const val = this.value.trim();
+                outputEl.textContent = val !== '' ? val : item.default;
+                
+                // Lógica especial visual para tipo de sangre
+                if (item.in === 'in-blood') {
+                    if (val !== '') {
+                        outputEl.classList.remove('text-gray-400');
+                        outputEl.classList.add('text-bloodred');
+                    } else {
+                        outputEl.classList.remove('text-bloodred');
+                        outputEl.classList.add('text-gray-400');
+                    }
+                }
+            };
+
+            inputEl.addEventListener('input', updateLogic);
+            inputEl.addEventListener('change', updateLogic);
+        });
+
+        // Configurar fecha actual formal
+        const today = new Date();
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        document.getElementById('current-date').textContent = `${today.getDate()} de ${meses[today.getMonth()]} de ${today.getFullYear()}`;
+
+        // ---------------------------------------------------------
+        // EXPORTAR COMO IMAGEN (Borrador Rápido - html2canvas)
+        // ---------------------------------------------------------
+        document.getElementById('btn-download-img').addEventListener('click', () => {
+            const previewContainer = document.getElementById('preview-container');
+            const btn = document.getElementById('btn-download-img');
+            const originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
+            lucide.createIcons();
+
+            html2canvas(previewContainer, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Ficha_Medica_Borrador_IPTCE.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            });
+        });
+
+        // ---------------------------------------------------------
+        // CÓDIGO NATIVO jsPDF (DIBUJO VECTORIAL PROFESIONAL)
+        // ---------------------------------------------------------
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            
+            // Documento tamaño carta estándar (612 x 792 puntos)
+            const doc = new jsPDF({ format: 'letter', unit: 'pt' });
+            
+            // Paleta Institucional
+            const cNavy = [5, 10, 21];
+            const cGold = [212, 175, 55];
+            const cRed = [220, 38, 38];
+            const cBlack = [20, 20, 20];
+            const cGray = [100, 100, 100];
+            const cLight = [200, 200, 200];
+            const cBgGray = [245, 245, 245];
+
+            const marginX = 40;
+            const contentWidth = 532; // 612 - (40*2)
+            let currentY = 50;
+
+            // ----- BORDES PERIMETRALES -----
+            doc.setDrawColor(...cLight);
+            doc.setLineWidth(0.5);
+            doc.rect(20, 20, 572, 752);
+
+            // ----- ENCABEZADO -----
+            doc.setFont("times", "bold");
+            doc.setFontSize(26);
+            doc.setTextColor(...cNavy);
+            doc.text("COLEGIO IPTCE", 612 - marginX, currentY + 20, { align: 'right' });
+            
+            doc.setFont("times", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(...cGray);
+            doc.text("INSTITUTO PROFESIONAL DE TÉCNICAS COMERCIALES ESPECIALIZADAS", 612 - marginX, currentY + 35, { align: 'right' });
+            
+            // Etiqueta Título
+            doc.setFillColor(...cNavy);
+            doc.rect(612 - marginX - 200, currentY + 45, 200, 22, 'F');
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(255, 255, 255);
+            doc.text("FICHA MÉDICA Y DE EMERGENCIA", 612 - marginX - 100, currentY + 59, { align: 'center' });
+
+            // Insertar Sello/Logo
+            const selloImg = document.getElementById('preview-sello-img');
+            try {
+                if (selloImg && selloImg.complete && selloImg.naturalWidth > 0 && selloImg.style.display !== 'none') {
+                    doc.addImage(selloImg, 'PNG', marginX, currentY, 70, 70);
+                } else {
+                    throw new Error("Imagen no disponible");
+                }
+            } catch (e) {
+                // Espacio Sello/Logo (Vectorial fallback)
+                doc.setDrawColor(...cLight);
+                doc.setLineWidth(1);
+                doc.setLineDashPattern([3, 3], 0);
+                doc.rect(marginX, currentY, 70, 70, 'S');
+                doc.setLineDashPattern([], 0);
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(8);
+                doc.setTextColor(...cLight);
+                doc.text("ESPACIO\nSELLO / LOGO", marginX + 35, currentY + 30, { align: 'center' });
+            }
+
+            currentY += 90;
+            doc.setDrawColor(...cNavy);
+            doc.setLineWidth(1.5);
+            doc.line(marginX, currentY, 612 - marginX, currentY);
+            currentY += 20;
+
+            // --- FUNCIÓN AUXILIAR PARA TÍTULOS DE SECCIÓN ---
+            const drawSectionTitle = (title, y) => {
+                doc.setFont("times", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(...cNavy);
+                doc.text(title, marginX, y);
+                doc.setDrawColor(...cLight);
+                doc.setLineWidth(0.5);
+                doc.line(marginX, y + 4, 612 - marginX, y + 4);
+                return y + 20;
+            };
+
+            // ----- 1. DATOS DEL ESTUDIANTE -----
+            currentY = drawSectionTitle("1. IDENTIFICACIÓN DEL ESTUDIANTE", currentY);
+            
+            doc.setDrawColor(...cLight);
+            doc.setFillColor(255, 255, 255);
+            doc.rect(marginX, currentY, contentWidth, 50, 'FD');
+            
+            // Cajas internas
+            doc.line(marginX + 300, currentY, marginX + 300, currentY + 50); // Divisor Grado
+            doc.line(marginX + 430, currentY, marginX + 430, currentY + 50); // Divisor Sangre
+            
+            // Labels
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...cGray);
+            doc.text("NOMBRE COMPLETO", marginX + 10, currentY + 12);
+            doc.text("GRADO / SECCIÓN", marginX + 310, currentY + 12);
+            
+            doc.setFillColor(...cBgGray);
+            doc.rect(marginX + 430.5, currentY + 0.5, contentWidth - 431, 49, 'F');
+            doc.text("TIPO DE SANGRE", marginX + 481, currentY + 12, { align: 'center' });
+
+            // Datos
+            const dNombre = document.getElementById('in-name').value.trim() || "[No especificado]";
+            const dGrado = document.getElementById('in-grade').value.trim() || "-";
+            const dSangre = document.getElementById('in-blood').value || "-";
+
+            doc.setFont("times", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(...cNavy);
+            doc.text(dNombre, marginX + 10, currentY + 35);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(...cBlack);
+            doc.text(dGrado, marginX + 310, currentY + 35);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(...cRed);
+            doc.text(dSangre, marginX + 481, currentY + 38, { align: 'center' });
+
+            currentY += 75;
+
+            // ----- 2. INFORMACIÓN MÉDICA -----
+            currentY = drawSectionTitle("2. CUADRO CLÍNICO Y ALERGIAS", currentY);
+            
+            // Alergias
+            doc.setDrawColor(...cLight);
+            doc.setFillColor(255, 240, 240); // Fondo rojizo suave
+            doc.rect(marginX, currentY, contentWidth, 40, 'FD');
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...cRed);
+            doc.text("ALERGIAS CONOCIDAS (CRÍTICO)", marginX + 10, currentY + 14);
+            
+            const dAlergias = document.getElementById('in-allergies').value.trim() || "Ninguna registrada";
+            doc.setFontSize(10);
+            doc.text(dAlergias, marginX + 10, currentY + 30);
+
+            currentY += 40;
+
+            // Condiciones
+            doc.setFillColor(255, 255, 255);
+            doc.rect(marginX, currentY, contentWidth, 50, 'FD');
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...cGray);
+            doc.text("CONDICIONES MÉDICAS Y MEDICACIÓN CONSTANTE", marginX + 10, currentY + 14);
+            
+            const dCond = document.getElementById('in-conditions').value.trim() || "Sin observaciones médicas declaradas.";
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.setTextColor(...cBlack);
+            const lineasCond = doc.splitTextToSize(dCond, contentWidth - 20);
+            doc.text(lineasCond, marginX + 10, currentY + 30);
+
+            currentY += (lineasCond.length * 12) + 40; // Ajuste dinámico de altura
+
+            // ----- 3. PROTOCOLO DE EMERGENCIA -----
+            currentY = drawSectionTitle("3. PROTOCOLO DE EMERGENCIA", currentY);
+            
+            const halfWidth = contentWidth / 2;
+            doc.setDrawColor(...cLight);
+            doc.rect(marginX, currentY, contentWidth, 60, 'S');
+            doc.line(marginX + halfWidth, currentY, marginX + halfWidth, currentY + 60);
+
+            // Tags oscuros
+            doc.setFillColor(...cNavy);
+            doc.rect(marginX + 10, currentY + 10, 100, 12, 'F');
+            doc.setFillColor(...cGray);
+            doc.rect(marginX + halfWidth + 10, currentY + 10, 100, 12, 'F');
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(255, 255, 255);
+            doc.text("CONTACTO PRINCIPAL", marginX + 15, currentY + 19);
+            doc.text("CONTACTO ALTERNO", marginX + halfWidth + 15, currentY + 19);
+
+            // Textos Contactos
+            doc.setTextColor(...cGray);
+            doc.text("NOMBRE / PARENTESCO:", marginX + 10, currentY + 38);
+            doc.text("TELÉFONO:", marginX + 10, currentY + 50);
+            
+            doc.text("NOMBRE / PARENTESCO:", marginX + halfWidth + 10, currentY + 38);
+            doc.text("TELÉFONO:", marginX + halfWidth + 10, currentY + 50);
+
+            // Datos Contactos
+            const c1n = document.getElementById('in-c1-name').value.trim() || "-";
+            const c1t = document.getElementById('in-c1-phone').value.trim() || "-";
+            const c2n = document.getElementById('in-c2-name').value.trim() || "-";
+            const c2t = document.getElementById('in-c2-phone').value.trim() || "-";
+
+            doc.setTextColor(...cNavy);
+            doc.setFontSize(9);
+            doc.text(c1n, marginX + 120, currentY + 38);
+            doc.text(c1t, marginX + 120, currentY + 50);
+            doc.text(c2n, marginX + halfWidth + 120, currentY + 38);
+            doc.text(c2t, marginX + halfWidth + 120, currentY + 50);
+
+            currentY += 75;
+
+            // ----- 4. SEGURO MÉDICO -----
+            doc.setDrawColor(...cLight);
+            doc.rect(marginX, currentY, contentWidth, 35, 'S');
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...cGray);
+            doc.text("SEGURO MÉDICO / CENTRO HOSPITALARIO PREFERIDO", marginX + 10, currentY + 13);
+            
+            const dSeguro = document.getElementById('in-insurance').value.trim() || "-";
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(...cNavy);
+            doc.text(dSeguro, marginX + 10, currentY + 26);
+
+            // ----- PIE DE PÁGINA Y FIRMAS -----
+            const signY = 660; // Fijo al fondo
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...cGray);
+            const disclaimer = "Declaro bajo juramento que la información médica y de contacto proporcionada en este documento es verídica y actual. Autorizo al personal administrativo y docente del Colegio IPTCE a actuar conforme a la ley en caso de emergencia médica, contactando a los números provistos o, en casos extremos, solicitando asistencia médica profesional de emergencia.";
+            const lineasDisclaimer = doc.splitTextToSize(disclaimer, contentWidth);
+            doc.text(lineasDisclaimer, marginX, signY - 30, { align: 'justify', maxWidth: contentWidth });
+
+            // Línea Firma
+            doc.setDrawColor(...cBlack);
+            doc.setLineWidth(0.5);
+            doc.line(marginX + 40, signY + 30, marginX + 200, signY + 30);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...cNavy);
+            doc.text("Firma del Responsable", marginX + 120, signY + 45, { align: 'center' });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...cGray);
+            doc.text("Padre, Madre o Tutor Legal", marginX + 120, signY + 55, { align: 'center' });
+
+            // Línea Fecha
+            doc.setDrawColor(...cGray);
+            doc.setLineDashPattern([3, 3], 0);
+            doc.line(612 - marginX - 200, signY + 30, 612 - marginX - 40, signY + 30);
+            doc.setLineDashPattern([], 0);
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...cNavy);
+            doc.text("Fecha de Actualización", 612 - marginX - 120, signY + 45, { align: 'center' });
+            
+            doc.setFont("times", "italic");
+            doc.setFontSize(9);
+            doc.setTextColor(...cGray);
+            const dateStr = document.getElementById('current-date').textContent;
+            doc.text(dateStr, 612 - marginX - 120, signY + 56, { align: 'center' });
+
+            // Guardar
+            doc.save('Ficha_Medica_Oficial_IPTCE.pdf');
+        });
+    </script>
+</body>
+</html>

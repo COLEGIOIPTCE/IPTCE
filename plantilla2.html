@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTCE - Carta de Buena Conducta Premium</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Librerías para generación de PDF y Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Google Fonts: Inter (UI) y Playfair Display / Lora (Documento Formal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darknavy: '#0a1128', // Aún más profundo y elegante
+                        gold: '#d4af37',
+                        lightgold: '#fbf8f1',
+                        panelbg: '#f8fafc',
+                        subtle: '#64748b',
+                        paper: '#fcfbf8' // Tono marfil muy sutil para el papel
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        body: ['Lora', 'serif'], // Fuente extra para el cuerpo del texto
+                    },
+                    boxShadow: {
+                        'premium': '0 20px 40px -15px rgba(10, 17, 40, 0.15)',
+                        'paper': '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        /* Scrollbar estilizado */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Estilos de Formulario Premium */
+        .premium-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.5rem;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            color: #0a1128;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .premium-input:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+        }
+        .premium-label {
+            display: block;
+            font-size: 0.70rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Contenedor de la hoja realista (Proporción Carta) */
+        .paper-container {
+            width: 100%;
+            max-width: 816px; /* 8.5 x 11 pulgadas a 96dpi */
+            aspect-ratio: 8.5 / 11;
+            background-color: #fcfbf8;
+            margin: 0 auto;
+            position: relative;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 10%, rgba(255,255,255,0.8) 90%, rgba(255,255,255,0) 100%),
+                linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(250,250,250,1) 100%);
+        }
+
+        /* Bordes y Líneas Dinámicas */
+        .fill-blank {
+            display: inline-block;
+            border-bottom: 1px solid #0a1128;
+            min-width: 120px;
+            text-align: center;
+            font-weight: 600;
+            color: #0a1128;
+            padding: 0 0.25rem;
+            margin: 0 0.15rem;
+            line-height: 1.1;
+        }
+
+        /* Utilidad para justificar el texto del documento */
+        .text-justify-custom {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans text-gray-800 antialiased overflow-hidden">
+
+    <header class="bg-darknavy border-b-[4px] border-gold py-4 px-6 md:px-8 shadow-xl flex items-center justify-between z-50 shrink-0">
+        <div class="flex items-center gap-5">
+            <img src="log.png" alt="Logo IPTCE" class="h-12 w-auto object-contain brightness-0 invert filter drop-shadow-md" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEwdi0uNjdhMi4xMiAyLjEyIDAgMCAwLTEuNS0yLjAxTDEyIDIuNjZMMi41IDcuMzJhMi4xMiAyLjEyIDAgMCAwLTEuNSAyLjAxVjEwbTAgNHYyLjY3YTIuMTIgMi4xMiAwIDAgMCAxLjUgMi4wMWw4IDMuMTZhMi4xMiAyLjEyIDAgMCAwIDEuNS0yLjAxVjE0bS0zIDR2Mm0tNi0ydjJtMTItMTMuODhWMjhIMnoiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIi8+PC9zdmc+'">
+            <div class="hidden sm:block border-l border-gray-700 pl-5">
+                <h1 class="text-white text-xl font-serif font-bold tracking-widest uppercase">Colegio IPTCE</h1>
+                <p class="text-gold text-[0.65rem] font-bold uppercase tracking-[0.25em] mt-0.5">Emisión de Constancias Premium</p>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="window.location.href='Proyect1.html'" class="text-gray-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-md hover:bg-white/10 border border-white/10">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Retornar
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col lg:flex-row h-[calc(100vh-87px)]">
+        
+        <section class="w-full lg:w-[420px] xl:w-[480px] bg-panelbg shadow-[15px_0_40px_rgba(10,17,40,0.08)] z-40 flex flex-col h-full border-r border-gray-200 shrink-0 relative">
+            
+            <div class="p-6 bg-white border-b border-gray-100 flex items-center gap-4 shrink-0 shadow-sm relative z-10">
+                <div class="w-12 h-12 bg-darknavy text-gold rounded-xl flex items-center justify-center shadow-lg transform -rotate-3">
+                    <i data-lucide="award" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-darknavy tracking-tight">CARTA DE CONDUCTA</h2>
+                    <p class="text-xs text-subtle font-semibold uppercase tracking-wider mt-1">Llenado de Documento Oficial</p>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow custom-scrollbar">
+                <form id="carta-form" class="space-y-6">
+                    
+                    <div class="relative group">
+                        <label class="premium-label">Nombre Completo del Estudiante</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                            <input type="text" id="student-name" class="premium-input font-medium" placeholder="Ej. Juan Andrés Pérez Gómez">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="relative group">
+                            <label class="premium-label">No. de Carnet</label>
+                            <div class="relative">
+                                <i data-lucide="hash" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                                <input type="text" id="student-id" class="premium-input font-medium" placeholder="Ej. 2026-001">
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <label class="premium-label">Fecha de Emisión</label>
+                            <div class="relative">
+                                <i data-lucide="calendar" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                                <input type="date" id="issue-date" class="premium-input pl-10 text-sm font-medium">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative group">
+                        <label class="premium-label">Grado y Especialidad Inscrita</label>
+                        <div class="relative">
+                            <i data-lucide="graduation-cap" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-gold transition-colors"></i>
+                            <input type="text" id="student-grade" class="premium-input font-medium" placeholder="Ej. 5to Perito Contador con Orientación en Computación">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4 mt-6">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 shrink-0"></i>
+                            <div>
+                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wide">Calidad Vectorial</h4>
+                                <p class="text-xs text-blue-700 mt-1 leading-relaxed">El documento PDF generado utiliza trazos matemáticos, garantizando una impresión perfecta sin píxeles borrosos. Ideal para impresión en alta resolución o envío digital oficial.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="p-5 border-t border-gray-200 bg-white grid gap-3 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] relative z-10">
+                <button id="btn-download-pdf" class="w-full bg-darknavy hover:bg-[#060a17] text-white font-bold py-3.5 px-4 rounded-xl shadow-premium hover:shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 group border border-gray-800">
+                    <i data-lucide="printer" class="w-5 h-5 group-hover:scale-110 transition-transform text-gold"></i>
+                    GENERAR PDF OFICIAL (ALTA CALIDAD)
+                </button>
+                <button id="btn-download-img" class="w-full bg-transparent border-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 font-bold py-2.5 px-4 rounded-xl transition-all flex justify-center items-center gap-2 text-sm uppercase tracking-wide">
+                    <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
+                    Exportar Captura Web (PNG)
+                </button>
+            </div>
+        </section>
+
+        <section class="flex-grow overflow-y-auto p-4 sm:p-8 flex justify-center items-start custom-scrollbar bg-gray-200/50">
+            
+            <!-- Lienzo tamaño carta con diseño de 2000 dólares -->
+            <div id="preview-container" class="paper-container shadow-paper p-[8%] flex flex-col text-darknavy relative overflow-hidden">
+                
+                <!-- BORDES PREMIUM -->
+                <!-- Borde exterior grueso -->
+                <div class="absolute inset-[20px] border-[3px] border-darknavy pointer-events-none z-10 opacity-90"></div>
+                <!-- Borde interior dorado -->
+                <div class="absolute inset-[26px] border-[1px] border-gold pointer-events-none z-10"></div>
+                <!-- Borde interior fino -->
+                <div class="absolute inset-[30px] border-[0.5px] border-darknavy/30 pointer-events-none z-10"></div>
+
+                <!-- Adornos en las esquinas -->
+                <div class="absolute top-[26px] left-[26px] w-4 h-4 border-t-2 border-l-2 border-darknavy pointer-events-none z-20"></div>
+                <div class="absolute top-[26px] right-[26px] w-4 h-4 border-t-2 border-r-2 border-darknavy pointer-events-none z-20"></div>
+                <div class="absolute bottom-[26px] left-[26px] w-4 h-4 border-b-2 border-l-2 border-darknavy pointer-events-none z-20"></div>
+                <div class="absolute bottom-[26px] right-[26px] w-4 h-4 border-b-2 border-r-2 border-darknavy pointer-events-none z-20"></div>
+
+                <!-- Marca de agua central sutil -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none z-0">
+                    <img src="log.png" alt="" class="w-[60%] object-contain grayscale" onerror="this.style.display='none'">
+                </div>
+
+                <div class="relative z-20 flex-1 flex flex-col h-full px-6 pt-4">
+                    
+                    <!-- ENCABEZADO DIPLOMÁTICO -->
+                    <div class="flex flex-col items-center mb-6 mt-4">
+                        <img src="log.png" alt="Sello" class="h-20 w-auto object-contain mb-4 drop-shadow-sm filter grayscale opacity-95" onerror="this.style.display='none'">
+                        
+                        <h1 class="text-darknavy text-3xl sm:text-4xl font-black font-serif tracking-[0.15em] uppercase text-center leading-none">COLEGIO IPTCE</h1>
+                        <h2 class="text-[0.65rem] sm:text-xs font-bold text-gray-500 font-sans tracking-[0.25em] uppercase text-center mt-2">Instituto Profesional de Técnicas Comerciales Especializadas</h2>
+                        
+                        <div class="w-full flex items-center justify-center mt-5 gap-2">
+                            <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-darknavy to-darknavy opacity-30"></div>
+                            <div class="w-2 h-2 rotate-45 bg-gold"></div>
+                            <div class="h-[1px] flex-grow bg-gradient-to-l from-transparent via-darknavy to-darknavy opacity-30"></div>
+                        </div>
+                    </div>
+
+                    <!-- META DATOS DEL DOCUMENTO -->
+                    <div class="flex justify-between items-end mb-8 w-full px-2">
+                        <div class="flex flex-col">
+                            <span class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Folio de Registro</span>
+                            <span class="text-sm font-bold text-darknavy tracking-wider font-sans">CB-<span id="doc-folio">0000</span>-26</span>
+                        </div>
+                        <div class="bg-lightgold border border-gold/30 px-3 py-1 rounded-sm shadow-sm">
+                            <span class="text-[0.65rem] font-black text-gold uppercase tracking-[0.2em]">Documento Oficial</span>
+                        </div>
+                    </div>
+
+                    <!-- TÍTULO PRINCIPAL -->
+                    <h3 class="text-center text-xl sm:text-2xl font-black mb-10 text-darknavy font-serif tracking-[0.15em] uppercase relative inline-block self-center">
+                        Constancia de Buena Conducta
+                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-1/2 h-[2px] bg-gold"></div>
+                    </h3>
+
+                    <!-- CUERPO DEL DOCUMENTO (Redacción Premium) -->
+                    <div class="flex-1 flex flex-col font-body px-2">
+                        <p class="text-justify-custom text-[15px] leading-[2.4] mb-6 text-gray-800">
+                            <strong class="font-bold tracking-wider uppercase text-darknavy text-base">A Quien Corresponda:</strong>
+                        </p>
+
+                        <p class="text-justify-custom text-[15px] leading-[2.4] mb-6 text-gray-800">
+                            La Dirección Administrativa y Académica del <strong class="text-darknavy font-bold">COLEGIO IPTCE</strong>, institución educativa debidamente autorizada por el Ministerio de Educación, hace constar por este medio oficial que el/la estudiante 
+                            <span id="prev-nombre" class="fill-blank uppercase text-[15px] tracking-wide font-bold min-w-[280px] text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>, 
+                            identificado(a) con el número de carnet 
+                            <span id="prev-carnet" class="fill-blank text-[15px] font-bold text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>, 
+                            e inscrito(a) formalmente en el grado de 
+                            <span id="prev-grado" class="fill-blank text-[15px] font-bold min-w-[220px] text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>; 
+                            ha observado una conducta <strong class="text-darknavy font-bold uppercase tracking-wider">intachable</strong> durante su permanencia en nuestras instalaciones.
+                        </p>
+
+                        <p class="text-justify-custom text-[15px] leading-[2.4] mb-6 text-gray-800">
+                            Durante su ciclo académico, ha demostrado en todo momento un comportamiento apegado a los más altos valores institucionales, manteniendo un destacado sentido de responsabilidad, disciplina y respeto irrestricto hacia las autoridades docentes, personal administrativo y sus compañeros de clase.
+                        </p>
+
+                        <p class="text-justify-custom text-[15px] leading-[2.4] mb-6 text-gray-800">
+                            Y para los usos legales y fines que a la parte interesada convengan, se extiende, sella y firma la presente constancia en la ciudad de Guatemala, a los 
+                            <span id="prev-dia" class="fill-blank text-[15px] font-bold min-w-[40px] text-center">&nbsp;&nbsp;&nbsp;&nbsp;</span> 
+                            días del mes de 
+                            <span id="prev-mes" class="fill-blank text-[15px] font-bold min-w-[100px] text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 
+                            del año 
+                            <span id="prev-anio" class="fill-blank text-[15px] font-bold min-w-[60px] text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>.
+                        </p>
+
+                        <!-- FIRMAS (PIE DE PÁGINA) -->
+                        <div class="mt-auto w-full pt-16 pb-6 relative">
+                            
+                            <!-- Círculo central para el sello físico -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-[30px] w-28 h-28 border-2 border-dashed border-gray-300 rounded-full flex flex-col items-center justify-center opacity-60">
+                                <span class="text-[0.55rem] text-gray-400 font-bold uppercase tracking-[0.2em] text-center leading-tight">Sello<br>Institucional</span>
+                            </div>
+
+                            <div class="flex justify-between w-full relative z-10 px-4">
+                                <div class="flex flex-col items-center w-[45%]">
+                                    <div class="w-full h-[1px] bg-darknavy mb-3"></div>
+                                    <p class="text-darknavy font-bold text-[13px] font-serif tracking-wide">Daniel Véliz Gudiel</p>
+                                    <p class="text-gray-500 text-[0.60rem] font-bold uppercase tracking-[0.2em] mt-1">Coordinador Académico</p>
+                                </div>
+                                <div class="flex flex-col items-center w-[45%]">
+                                    <div class="w-full h-[1px] bg-darknavy mb-3"></div>
+                                    <p class="text-darknavy font-bold text-[13px] font-serif tracking-wide">Marta Josefina Paniagua Lara</p>
+                                    <p class="text-gray-500 text-[0.60rem] font-bold uppercase tracking-[0.2em] mt-1">Directora General</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Inicializar iconos Lucide
+        lucide.createIcons();
+
+        // Generar un folio aleatorio para el documento
+        document.getElementById('doc-folio').textContent = Math.floor(1000 + Math.random() * 9000);
+
+        // Referencias a inputs
+        const inputs = {
+            nombre: document.getElementById('student-name'),
+            carnet: document.getElementById('student-id'),
+            grado: document.getElementById('student-grade'),
+            fecha: document.getElementById('issue-date')
+        };
+
+        // Referencias a vista previa
+        const previews = {
+            nombre: document.getElementById('prev-nombre'),
+            carnet: document.getElementById('prev-carnet'),
+            grado: document.getElementById('prev-grado'),
+            dia: document.getElementById('prev-dia'),
+            mes: document.getElementById('prev-mes'),
+            anio: document.getElementById('prev-anio')
+        };
+
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+        // Configurar fecha actual por defecto
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        inputs.fecha.value = `${yyyy}-${mm}-${dd}`;
+
+        // Función para actualizar la previsualización en tiempo real
+        function updatePreview() {
+            previews.nombre.innerHTML = inputs.nombre.value.trim().toUpperCase() || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            previews.carnet.innerHTML = inputs.carnet.value.trim() || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            previews.grado.innerHTML = inputs.grado.value.trim() || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            
+            if (inputs.fecha.value) {
+                const dateParts = inputs.fecha.value.split('-');
+                const dObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                
+                previews.dia.textContent = String(dObj.getDate()).padStart(2, '0');
+                previews.mes.textContent = meses[dObj.getMonth()];
+                previews.anio.textContent = dObj.getFullYear();
+            } else {
+                previews.dia.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;';
+                previews.mes.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                previews.anio.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            }
+        }
+
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', updatePreview);
+            input.addEventListener('change', updatePreview);
+        });
+
+        updatePreview();
+
+        document.getElementById('btn-download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            
+            // Documento tamaño carta (612 x 792 puntos, estándar de impresión)
+            const doc = new jsPDF({ format: 'letter', unit: 'pt' });
+            
+            // Paleta de Colores Institucionales
+            const colorNavy = [10, 17, 40];  // #0a1128 Azul muy oscuro y profundo
+            const colorGold = [212, 175, 55]; // #d4af37 Dorado
+            const colorGray = [100, 116, 139]; // Gris para textos secundarios
+            const colorBlack = [20, 20, 20]; // Casi negro para texto principal
+
+            // Márgenes del contenido principal
+            const marginX = 80;
+            const contentWidth = 612 - (marginX * 2); 
+            let currentY = 120; // Inicio debajo del encabezado
+
+            // ==========================================
+            // 1. DIBUJO DE BORDES PREMIUM (Perímetro)
+            // ==========================================
+            // Línea exterior gruesa
+            doc.setDrawColor(...colorNavy);
+            doc.setLineWidth(3);
+            doc.rect(30, 30, 552, 732); 
+
+            // Línea interior dorada
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(1);
+            doc.rect(38, 38, 536, 716); 
+
+            // Línea interior fina grisácea
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.rect(42, 42, 528, 708);
+
+            // Adornos de esquina
+            doc.setDrawColor(...colorNavy);
+            doc.setLineWidth(2);
+            const cornerSize = 15;
+            // Arriba Izquierda
+            doc.line(38, 38, 38 + cornerSize, 38);
+            doc.line(38, 38, 38, 38 + cornerSize);
+            // Arriba Derecha
+            doc.line(574, 38, 574 - cornerSize, 38);
+            doc.line(574, 38, 574, 38 + cornerSize);
+            // Abajo Izquierda
+            doc.line(38, 754, 38 + cornerSize, 754);
+            doc.line(38, 754, 38, 754 - cornerSize);
+            // Abajo Derecha
+            doc.line(574, 754, 574 - cornerSize, 754);
+            doc.line(574, 754, 574, 754 - cornerSize);
+
+            // ==========================================
+            // 2. ENCABEZADO DIPLOMÁTICO
+            // ==========================================
+            // Al no cargar imágenes para evitar errores CORS/Base64 en el script, 
+            // creamos un encabezado tipográfico imponente.
+            
+            doc.setFont("times", "bold");
+            doc.setFontSize(32);
+            doc.setTextColor(...colorNavy);
+            // Aumentar el espaciado entre letras para mayor elegancia usando un truco en jsPDF: 
+            // Dibujaremos el texto principal centrado
+            doc.text("COLEGIO IPTCE", 306, 90, { align: 'center', charSpace: 2 });
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...colorGray);
+            doc.text("INSTITUTO PROFESIONAL DE TÉCNICAS COMERCIALES ESPECIALIZADAS", 306, 105, { align: 'center', charSpace: 1.5 });
+
+            // Línea divisoria con diamante central
+            doc.setDrawColor(...colorNavy);
+            doc.setLineWidth(0.5);
+            doc.line(150, 120, 296, 120); // Izquierda
+            doc.line(316, 120, 462, 120); // Derecha
+            
+            // Diamante dorado
+            doc.setFillColor(...colorGold);
+            doc.lines([[4, -4], [4, 4], [-4, 4], [-4, -4]], 302, 120, [1, 1], 'F');
+
+            currentY = 150;
+
+            // ==========================================
+            // 3. METADATOS Y FOLIO
+            // ==========================================
+            const folio = document.getElementById('doc-folio').textContent;
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorGray);
+            doc.text("FOLIO DE REGISTRO", marginX, currentY);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(...colorNavy);
+            doc.text(`CB-${folio}-26`, marginX, currentY + 12);
+
+            // Insignia Oficial
+            doc.setFillColor(252, 248, 235); // Fondo amarillento claro
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(0.5);
+            doc.rect(612 - marginX - 120, currentY - 5, 120, 18, 'FD');
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorGold);
+            doc.text("DOCUMENTO OFICIAL", 612 - marginX - 60, currentY + 6, { align: 'center', charSpace: 1 });
+
+            currentY += 50;
+
+            // ==========================================
+            // 4. TÍTULO DEL DOCUMENTO
+            // ==========================================
+            doc.setFont("times", "bold");
+            doc.setFontSize(20);
+            doc.setTextColor(...colorNavy);
+            doc.text("CONSTANCIA DE BUENA CONDUCTA", 306, currentY, { align: 'center', charSpace: 1 });
+            
+            // Subrayado dorado
+            const titleWidth = doc.getTextWidth("CONSTANCIA DE BUENA CONDUCTA") + 10;
+            doc.setDrawColor(...colorGold);
+            doc.setLineWidth(1.5);
+            doc.line(306 - (titleWidth/2), currentY + 8, 306 + (titleWidth/2), currentY + 8);
+
+            currentY += 60;
+
+            // ==========================================
+            // 5. CUERPO DEL TEXTO (Justificación Perfecta)
+            // ==========================================
+            doc.setFont("times", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(...colorNavy);
+            doc.text("A QUIEN CORRESPONDA:", marginX, currentY);
+            currentY += 30;
+
+            // Variables de texto
+            const nomStr = inputs.nombre.value.trim().toUpperCase() || "________________________";
+            const carnetStr = inputs.carnet.value.trim() || "__________";
+            const gradoStr = inputs.grado.value.trim() || "________________";
+
+            let diaStr = "____";
+            let mesStr = "________";
+            let anioStr = "______";
+            
+            if (inputs.fecha.value) {
+                const dateParts = inputs.fecha.value.split('-');
+                const dObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                diaStr = String(dObj.getDate()).padStart(2, '0');
+                mesStr = meses[dObj.getMonth()];
+                anioStr = String(dObj.getFullYear());
+            }
+
+            // Párrafos
+            const parrafo1 = `La Dirección Administrativa y Académica del COLEGIO IPTCE, institución educativa debidamente autorizada por el Ministerio de Educación, hace constar por este medio oficial que el/la estudiante ${nomStr}, identificado(a) con el número de carnet ${carnetStr}, e inscrito(a) formalmente en el grado de ${gradoStr}; ha observado una conducta INTACHABLE durante su permanencia en nuestras instalaciones.`;
+            
+            const parrafo2 = "Durante su ciclo académico, ha demostrado en todo momento un comportamiento apegado a los más altos valores institucionales, manteniendo un destacado sentido de responsabilidad, disciplina y respeto irrestricto hacia las autoridades docentes, personal administrativo y sus compañeros de clase.";
+            
+            const parrafo3 = `Y para los usos legales y fines que a la parte interesada convengan, se extiende, sella y firma la presente constancia en la ciudad de Guatemala, a los ${diaStr} días del mes de ${mesStr} del año ${anioStr}.`;
+
+            // Configuración de fuente para el cuerpo
+            doc.setFont("times", "normal");
+            doc.setFontSize(12);
+            doc.setTextColor(...colorBlack);
+            
+            // Función auxiliar para imprimir párrafos justificados
+            function printParagraph(text, y) {
+                // jsPDF tiene `align: 'justify'` si se le da el `maxWidth` correcto.
+                const lines = doc.splitTextToSize(text, contentWidth);
+                doc.text(lines, marginX, y, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: 1.8 });
+                return y + (lines.length * 21.6); // 12pt * 1.8 = 21.6 altura de línea aproximada
+            }
+
+            currentY = printParagraph(parrafo1, currentY);
+            currentY += 15; // Espacio entre párrafos
+            
+            currentY = printParagraph(parrafo2, currentY);
+            currentY += 15;
+            
+            currentY = printParagraph(parrafo3, currentY);
+
+            // ==========================================
+            // 6. FIRMAS Y SELLOS (Pie de Página)
+            // ==========================================
+            const signY = 660; // Fijo en la parte inferior
+            
+            // Sello Físico Central (Línea punteada)
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(1);
+            doc.setLineDashPattern([4, 4], 0);
+            doc.circle(306, signY - 20, 45, 'S');
+            doc.setLineDashPattern([], 0); // Restaurar línea sólida
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(180, 180, 180);
+            doc.text("SELLO", 306, signY - 22, { align: 'center', charSpace: 2 });
+            doc.text("INSTITUCIONAL", 306, signY - 10, { align: 'center', charSpace: 2 });
+
+            // Firma Izquierda (Coordinador)
+            doc.setDrawColor(...colorNavy);
+            doc.setLineWidth(1);
+            doc.line(marginX, signY, marginX + 160, signY);
+            
+            doc.setFont("times", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...colorNavy);
+            doc.text("Daniel Véliz Gudiel", marginX + 80, signY + 15, { align: 'center' });
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorGray);
+            doc.text("COORDINADOR ACADÉMICO", marginX + 80, signY + 28, { align: 'center', charSpace: 1 });
+
+            // Firma Derecha (Directora)
+            const rMarginX = 612 - marginX - 160;
+            doc.setDrawColor(...colorNavy);
+            doc.setLineWidth(1);
+            doc.line(rMarginX, signY, 612 - marginX, signY);
+            
+            doc.setFont("times", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...colorNavy);
+            doc.text("Marta Josefina Paniagua Lara", rMarginX + 80, signY + 15, { align: 'center' });
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...colorGray);
+            doc.text("DIRECTORA GENERAL", rMarginX + 80, signY + 28, { align: 'center', charSpace: 1 });
+
+            // Ejecutar Descarga del PDF Vectorial
+            const safeName = inputs.nombre.value.replace(/\s+/g, '_') || 'Estudiante';
+            doc.save(`Constancia_Conducta_${safeName}_IPTCE.pdf`);
+        });
+
+        document.getElementById('btn-download-img').addEventListener('click', () => {
+            const previewContainer = document.getElementById('preview-container');
+            const btn = document.getElementById('btn-download-img');
+            const originalHTML = btn.innerHTML;
+            
+            // Estado de carga
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
+            lucide.createIcons();
+
+            html2canvas(previewContainer, { 
+                scale: 3, // Escala aumentada para mejor resolución en la imagen
+                useCORS: true,
+                backgroundColor: '#fcfbf8'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Borrador_Conducta_${inputs.nombre.value.replace(/\s+/g, '_') || 'IPTCE'}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                
+                // Restaurar botón
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            });
+        });
+    </script>
+</body>
+</html>

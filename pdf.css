@@ -1,0 +1,51 @@
+/* pdf.css - Estilos simplificados para respaldar el clon exacto del Dashboard */
+
+/* Clase especial que html2pdf reconoce para forzar el cambio de página */
+.html2pdf__page-break {
+    page-break-before: always;
+    clear: both;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Ajustes de seguridad para el contenedor clonado */
+#pdf-export-clone {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc; 
+    color: #1e293b;
+    box-sizing: border-box;
+    /* Evita que los bordes corten el contenido */
+    overflow: visible !important; 
+}
+
+/* Ajustamos el padding general para que el PDF se vea más centrado y como un documento */
+#pdf-export-clone main {
+    padding: 20px 40px !important;
+}
+
+/* Forzamos a que las tablas usen todo el espacio y no se rompan */
+#pdf-export-clone table {
+    width: 100% !important;
+    background-color: white;
+    page-break-inside: avoid; /* Intenta que una tabla no se parta por la mitad de la hoja */
+}
+
+/* Reducimos ligeramente el texto en tablas para que encaje mejor en Tamaño Carta */
+#pdf-export-clone th,
+#pdf-export-clone td {
+    padding: 8px !important;
+    font-size: 11px !important;
+}
+
+/* Las gráficas necesitan comportarse bien al imprimirse */
+#pdf-export-clone canvas, 
+#pdf-export-clone img {
+    page-break-inside: avoid;
+}
+
+/* Quitar sombra exagerada en PDF para un look más limpio de impresora */
+#pdf-export-clone .shadow-sm {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+}
